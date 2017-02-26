@@ -1,0 +1,332 @@
+C***********************************************************************
+C                       LAST REVISED 5/1/92                            -
+C                                                                      -
+CF          ISOTXS-IV                                                  -
+CE          MICROSCOPIC GROUP NEUTRON CROSS SECTIONS                   -
+C                                                                      -
+CN                      THIS FILE PROVIDES A BASIC BROAD GROUP         -
+CN                      LIBRARY, ORDERED BY ISOTOPE                    -
+CN                      FORMATS GIVEN ARE FOR FILE EXCHANGE PURPOSES   -
+CN                      ONLY.                                          -
+C                                                                      -
+C***********************************************************************
+
+C-----------------------------------------------------------------------
+CS          FILE STRUCTURE                                             -
+CS                                                                     -
+CS             RECORD TYPE                        PRESENT IF           -
+CS             ===============================    ===============      -
+CS             FILE IDENTIFICATION                ALWAYS               -
+CS             FILE CONTROL                       ALWAYS               -
+CS             FILE DATA                          ALWAYS               -
+CS             FILE-WIDE CHI DATA                 ICHIST.GT.1          -
+CS                                                                     -
+CS   *************(REPEAT FOR ALL ISOTOPES)                            -
+CS   *         ISOTOPE CONTROL AND GROUP                               -
+CS   *                        INDEPENDENT DATA    ALWAYS               -
+CS   *         PRINCIPAL CROSS SECTIONS           ALWAYS               -
+CS   *         ISOTOPE CHI DATA                   ICHI.GT.1            -
+CS   *                                                                 -
+CS   *  **********(REPEAT TO NSCMAX SCATTERING BLOCKS)                 -
+CS   *  *  *******(REPEAT FROM 1 TO NSBLOK)                            -
+CS   *  *  *   SCATTERING SUB-BLOCK               LORD(N).GT.0         -
+CS   *************                                                     -
+C                                                                      -
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+CR          FILE IDENTIFICATION                                        -
+C                                                                      -
+CL    HNAME,(HUSE(I),I=1,2),IVERS                                      -
+C                                                                      -
+CW    1+3*MULT=NUMBER OF WORDS                                         -
+C                                                                      -
+CB    FORMAT(11H 0V ISOTXS ,   1H*,                                    -
+CB   12A6,1H*,I6)                                                      -
+C                                                                      -
+CD    HNAME         HOLLERITH FILE NAME - ISOTXS - (A6)                -
+CD    HUSE(I)       HOLLERITH USER IDENTIFICATION (A6)                 -
+CD    IVERS         FILE VERSION NUMBER                                -
+CD    MULT          DOUBLE PRECISION PARAMETER                         -
+CD                      1- A6 WORD IS SINGLE WORD                      -
+CD                      2- A6 WORD IS DOUBLE PRECISION WORD            -
+C                                                                      -
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+CR          FILE CONTROL   (1D RECORD)                                 -
+C                                                                      -
+CL    NGROUP,NISO,MAXUP,MAXDN,MAXORD,ICHIST,NSCMAX,NSBLOK              -
+C                                                                      -
+CW    8=NUMBER OF WORDS                                                -
+C                                                                      -
+CB    FORMAT(4H 1D ,8I6)                                               -
+C                                                                      -
+CD    NGROUP        NUMBER OF ENERGY GROUPS IN FILE                    -
+CD    NISO          NUMBER OF ISOTOPES IN FILE                         -
+CD    MAXUP         MAXIMUM NUMBER OF UPSCATTER GROUPS                 -
+CD    MAXDN         MAXIMUM NUMBER OF DOWNSCATTER GROUPS               -
+CD    MAXORD        MAXIMUM SCATTERING ORDER (MAXIMUM VALUE OF         -
+CD                     LEGENDRE EXPANSION INDEX USED IN FILE).         -
+CD    ICHIST        FILE-WIDE FISSION SPECTRUM FLAG                    -
+CD                     ICHIST.EQ.0,      NO FILE-WIDE SPECTRUM         -
+CD                     ICHIST.EQ.1,      FILE-WIDE CHI VECTOR          -
+CD                     ICHIST.GT.1,      FILE-WIDE CHI MATRIX          -
+CD    NSCMAX        MAXIMUM NUMBER OF BLOCKS OF SCATTERING DATA        -
+CD    NSBLOK        SUBBLOCKING CONTROL FOR SCATTER MATRICES. THE      -
+CD                     SCATTERING DATA ARE SUBBLOCKED INTO NSBLOK      -
+CD                     RECORDS(SUBBLOCKS) PER SCATTERING BLOCK.        -
+C                                                                      -
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+CR          FILE DATA   (2D RECORD)                                    -
+C                                                                      -
+CL    (HSETID(I),I=1,12),(HISONM(I),I=1,NISO),                         -
+CL   1(CHI(J),J=1,NGROUP),(VEL(J),J=1,NGROUP),                         -
+CL   2(EMAX(J),J=1,NGROUP),EMIN,(LOCA(I),I=1,NISO)                     -
+C                                                                      -
+CW    (NISO+12)*MULT+1+NISO                                            -
+CW    +NGROUP*(2+ICHIST*(2/(ICHIST+1)))=NUMBER OF WORDS                -
+C                                                                      -
+CB    FORMAT(4H 2D ,1H*,11A6,1H*/      HSETID,HISONM                   -
+CB   11H*,A6,1H*,9(1X,A6)/(10(1X,A6)))                                 -
+CB    FORMAT(  6E12.5)                 CHI (PRESENT IF ICHIST.EQ.1)    -
+CB    FORMAT ( 6E12.5)                 VEL,EMAX,EMIN                   -
+CB    FORMAT(12I6)                     LOCA                            -
+C                                                                      -
+CD    HSETID(I)     HOLLERITH IDENTIFICATION OF FILE (A6)              -
+CD    HISONM(I)     HOLLERITH ISOTOPE LABEL FOR ISOTOPE I (A6)         -
+CD    CHI(J)        FILE-WIDE FISSION SPECTRUM(PRESENT IF ICHIST.EQ.1) -
+CD    VEL(J)        MEAN NEUTRON VELOCITY IN GROUP J (CM/SEC)          -
+CD    EMAX(J)       MAXIMUM ENERGY BOUND OF GROUP J (EV)               -
+CD    EMIN          MINIMUM ENERGY BOUND OF SET (EV)                   -
+CD    LOCA(I)       NUMBER OF RECORDS TO BE SKIPPED TO READ DATA FOR   -
+CD                     ISOTOPE I.  LOCA(1)=0                           -
+C                                                                      -
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+CR          FILE-WIDE CHI DATA   (3D RECORD)                           -
+C                                                                      -
+CC        PRESENT IF ICHIST.GT.1                                       -
+C                                                                      -
+CL    ((CHI(K,J),K=1,ICHIST),J=1,NGROUP),(ISSPEC(I),I=1,NGROUP)        -
+C                                                                      -
+CW    NGROUP*(ICHIST+1)=NUMBER OF WORDS                                -
+C                                                                      -
+CB    FORMAT(4H 3D ,  5E12.5/(6E12.5)) CHI                             -
+CB    FORMAT(12I6)                     ISSPEC                          -
+C                                                                      -
+CD    CHI(K,J)      FRACTION OF NEUTRONS EMITTED INTO GROUP J AS A     -
+CD                     RESULT OF FISSION IN ANY GROUP,USING SPECTRUM K -
+CD    ISSPEC(I)     ISSPEC(I)=K IMPLIES THAT SPECTRUM K IS USED        -
+CD                     TO CALCULATE EMISSION SPECTRUM FROM FISSION     -
+CD                     IN GROUP I                                      -
+C                                                                      -
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+CR          ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)   -
+C                                                                      -
+CL    HABSID,HIDENT,HMAT,AMASS,EFISS,ECAPT,TEMP,SIGPOT,ADENS,KBR,ICHI, -
+CL   1IFIS,IALF,INP,IN2N,IND,INT,LTOT,LTRN,ISTRPD,                     -
+CL   2(IDSCT(N),N=1,NSCMAX),(LORD(N),N=1,NSCMAX),                      -
+CL   3((JBAND(J,N),J=1,NGROUP),N=1,NSCMAX),                            -
+CL   4((IJJ(J,N),J=1,NGROUP),N=1,NSCMAX)                               -
+C                                                                      -
+CW    3*MULT+17+NSCMAX*(2*NGROUP+2)=NUMBER OF WORDS                    -
+C                                                                      -
+CB    FORMAT(4H 4D ,3(1X,A6)/  6E12.5/                                 -
+CB   1(12I6))                                                          -
+C                                                                      -
+CD    HABSID        HOLLERITH ABSOLUTE ISOTOPE LABEL - SAME FOR ALL    -
+CD                            VERSIONS OF THE SAME ISOTOPE IN FILE (A6)-
+CD    HIDENT        IDENTIFIER OF LIBRARY FROM WHICH BASIC DATA        -
+CD                            CAME(E.G. ENDF/B) (A6)                   -
+CD    HMAT          ISOTOPE IDENTIFICATION (E.G. ENDF/B MAT NO.) (A6)  -
+CD    AMASS         GRAM ATOMIC WEIGHT                                 -
+CD    EFISS         TOTAL THERMAL ENERGY YIELD/FISSION (W.SEC/FISS)    -
+CD    ECAPT         TOTAL THERMAL ENERGY YIELD/CAPTURE (W.SEC/CAPT)    -
+CD    TEMP          ISOTOPE TEMPERATURE (DEGREES KELVIN)               -
+CD    SIGPOT        AVERAGE EFFECTIVE POTENTIAL SCATTERING IN          -
+CD                            RESONANCE RANGE (BARNS/ATOM)             -
+CD    ADENS         DENSITY OF ISOTOPE IN MIXTURE IN WHICH ISOTOPE     -
+CD                            CROSS SECTIONS WERE GENERATED (A/BARN-CM)-
+CD    KBR           ISOTOPE CLASSIFICATION                             -
+CD                     0=UNDEFINED                                     -
+CD                     1=FISSILE                                       -
+CD                     2=FERTILE                                       -
+CD                     3=OTHER ACTINIDE                                -
+CD                     4=FISSION PRODUCT                               -
+CD                     5=STRUCTURE                                     -
+CD                     6=COOLANT                                       -
+CD                     7=CONTROL                                       -
+CD    ICHI          ISOTOPE FISSION SPECTRUM FLAG                      -
+CD                      ICHI.EQ.0,     USE FILE-WIDE CHI               -
+CD                      ICHI.EQ.1,     ISOTOPE CHI VECTOR              -
+CD                      ICHI.GT.1,     ISOTOPE CHI MATRIX              -
+CD    IFIS          (N,F) CROSS SECTION FLAG                           -
+CD                     IFIS=0, NO FISSION DATA IN PRINCIPAL CROSS      -
+CD                                       SECTION RECORD                -
+CD                         =1, FISSION DATA PRESENT IN PRINCIPAL       -
+CD                                       CROSS SECTION RECORD          -
+CD    IALF          (N,ALPHA) CROSS SECTION FLAG                       -
+CD                     SAME OPTIONS AS IFIS                            -
+CD    INP           (N,P) CROSS SECTION FLAG                           -
+CD                     SAME OPTIONS AS IFIS                            -
+CD    IN2N          (N,2N) CROSS SECTION FLAG                          -
+CD                     SAME OPTIONS AS IFIS                            -
+CD    IND           (N,D) CROSS SECTION FLAG                           -
+CD                     SAME OPTIONS AS IFIS                            -
+CD    INT           (N,T) CROSS SECTION FLAG                           -
+CD                     SAME OPTIONS AS IFIS                            -
+CD    LTOT          NUMBER OF MOMENTS OF TOTAL CROSS SECTION PROVIDED  -
+CD                     IN PRINCIPAL CROSS SECTIONS RECORD              -
+CD    LTRN          NUMBER OF MOMENTS OF TRANSPORT CROSS SECTION       -
+CD                     PROVIDED IN PRINCIPAL CROSS SECTIONS RECORD     -
+CD    ISTRPD        NUMBER OF COORDINATE DIRECTIONS FOR WHICH          -
+CD                     COORDINATE DEPENDENT TRANSPORT CROSS SECTIONS   -
+CD                     ARE GIVEN. IF ISTRPD=0, NO COORDINATE DEPENDENT -
+CD                     TRANSPORT CROSS SECTIONS ARE GIVEN.             -
+CD    IDSCT(N)      SCATTERING MATRIX TYPE IDENTIFICATION FOR          -
+CD                     SCATTERING BLOCK N.  SIGNIFICANT ONLY IF        -
+CD                     LORD(N).GT.0                                    -
+CD                     IDSCT(N)=000 + NN, TOTAL SCATTERING, (SUM OF    -
+CD                         ELASTIC,INELASTIC, AND N,2N SCATTERING      -
+CD                         MATRIX TERMS).                              -
+CD                             =100 + NN, ELASTIC SCATTERING           -
+CD                             =200 + NN, INELASTIC SCATTERING         -
+CD                             =300 + NN, (N,2N) SCATTERING,----SEE    -
+CD                              NOTE BELOW----                         -
+CD                     WHERE NN IS THE LEGENDRE EXPANSION INDEX OF THE -
+CD                     FIRST MATRIX IN BLOCK N                         -
+CD    LORD(N)       NUMBER OF SCATTERING ORDERS IN BLOCK N.  IF        -
+CD                     LORD(N)=0, THIS BLOCK IS NOT PRESENT FOR THIS   -
+CD                     ISOTOPE.  IF NN IS THE VALUE TAKEN FROM         -
+CD                     IDSCT(N), THEN THE MATRICES IN THIS BLOCK       -
+CD                     HAVE LEGENDRE EXPANSION INDICES OF NN,NN+1,     -
+CD                     NN+2,...,NN+LORD(N)-1                           -
+CD    JBAND(J,N)    NUMBER OF GROUPS THAT SCATTER INTO GROUP J,        -
+CD                     INCLUDING SELF-SCATTER, IN SCATTERING BLOCK N.  -
+CD                     IF JBAND(J,N)=0, NO SCATTER DATA IS PRESENT IN  -
+CD                     BLOCK N                                         -
+CD    IJJ(J,N)      POSITION OF IN-GROUP SCATTERING CROSS SECTION IN   -
+CD                     SCATTERING DATA FOR GROUP J, SCATTERING BLOCK   -
+CD                     N,COUNTED FROM THE FIRST WORD OF GROUP J DATA.  -
+CD                     IF JBAND(J,N).NE.0 THEN IJJ(J,N) MUST SATISFY   -
+CD                     THE RELATION 1.LE.IJJ(J,N).LE.JBAND(J,N)        -
+C                                                                      -
+CN                  NOTE- FOR N,2N SCATTER, THE MATRIX CONTAINS TERMS, -
+CN                     SCAT(J TO G), WHICH ARE EMISSION (PRODUCTION)   -
+CN                     BASED, I.E., ARE DEFINED SUCH THAT MACROSCOPIC  -
+CN                     SCAT(J TO G) TIMES THE FLUX IN GROUP J GIVES    -
+CN                     THE RATE OF EMISSION (PRODUCTION) OF  NEUTRONS  -
+CN                     INTO GROUP G.                                   -
+C                                                                      -
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+CR          PRINCIPAL CROSS SECTIONS   (5D RECORD)                     -
+C                                                                      -
+CL    ((STRPL(J,L),J=1,NGROUP),L=1,LTRN),                              -
+CL   1((STOTPL(J,L),J=1,NGROUP),L=1,LTOT),(SNGAM(J),J=1,NGROUP),       -
+CL   2(SFIS(J),J=1,NGROUP),(SNUTOT(J),J=1,NGROUP),                     -
+CL   3(CHISO(J),J=1,NGROUP),(SNALF(J),J=1,NGROUP),                     -
+CL   4(SNP(J),J=1,NGROUP),(SN2N(J),J=1,NGROUP),                        -
+CL   5(SND(J),J=1,NGROUP),(SNT(J),J=1,NGROUP)                          -
+CL   6((STRPD(J,I),J=1,NGROUP),I=1,ISTRPD)                             -
+C                                                                      -
+CW    (1+LTRN+LTOT+IALF+INP+IN2N+IND+INT+ISTRPD+2*IFIS+                -
+CW    ICHI*(2/(ICHI+1)))*NGROUP=NUMBER OF WORDS                        -
+C                                                                      -
+CB    FORMAT(4H 5D ,  5E12.5/(6E12.5)) LENGTH OF LIST AS ABOVE         -
+C                                                                      -
+CD    STRPL(J,L)    PL WEIGHTED TRANSPORT CROSS SECTION                -
+CD                     THE FIRST ELEMENT OF ARRAY STRPL IS THE         -
+CD                     CURRENT (P1) WEIGHTED TRANSPORT CROSS SECTION   -
+CD                     THE LEGENDRE EXPANSION COEFFICIENT FACTOR (2L+1)-
+CD                     IS NOT INCLUDED IN STRPL(J,L).                  -
+CD    STOTPL(J,L)   PL WEIGHTED TOTAL CROSS SECTION                    -
+CD                     THE FIRST ELEMENT OF ARRAY STOTPL IS THE        -
+CD                     FLUX (P0) WEIGHTED TOTAL CROSS SECTION          -
+CD                     THE LEGENDRE EXPANSION COEFFICIENT FACTOR (2L+1)-
+CD                     IS NOT INCLUDED IN STOTPL(J,L).                 -
+CD    SNGAM(J)      (N,GAMMA)                                          -
+CD    SFIS(J)       (N,F)        (PRESENT IF IFIS.GT.0)                -
+CD    SNUTOT(J)     TOTAL NEUTRON YIELD/FISSION  (PRESENT IF IFIS.GT.0)-
+CD    CHISO(J)      ISOTOPE CHI  (PRESENT IF ICHI.EQ.1)                -
+CD    SNALF(J)      (N,ALPHA)    (PRESENT IF IALF.GT.0)                -
+CD    SNP(J)        (N,P)        (PRESENT IF INP.GT.0)                 -
+CD    SN2N(J)       (N,2N)       (PRESENT IF IN2N.GT.0)  ----SEE       -
+CD                     NOTE BELOW----                                  -
+CD    SND(J)        (N,D)        (PRESENT IF IND.GT.0)                 -
+CD    SNT(J)        (N,T)        (PRESENT IF INT.GT.0)                 -
+CD    STRPD(J,I)    COORDINATE DIRECTION I TRANSPORT CROSS SECTION     -
+CD                               (PRESENT IF ISTRPD.GT.0)              -
+C                                                                      -
+CN                  NOTE - THE PRINCIPAL N,2N CROSS SECTION SN2N(J)    -
+CN                     IS DEFINED AS THE N,2N REACTION CROSS SECTION,  -
+CN                     I.E., SUCH THAT MACROSCOPIC SN2N(J) TIMES THE   -
+CN                     FLUX IN GROUP J GIVES THE RATE AT WHICH N,2N    -
+CN                     REACTIONS OCCUR IN GROUP J.  THUS, FOR N,2N     -
+CN                     SCATTERING, SN2N(J) = 0.5*(SUM OF SCAT(J TO G)  -
+CN                     SUMMED OVER ALL G).                             -
+C                                                                      -
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+CR          ISOTOPE CHI DATA   (6D RECORD)                             -
+C                                                                      -
+CC          PRESENT IF ICHI.GT.1                                       -
+C                                                                      -
+CL    ((CHIISO(K,J),K=1,ICHI),J=1,NGROUP),(ISOPEC(I),I=1,NGROUP)       -
+C                                                                      -
+CW    NGROUP*(ICHI+1)=NUMBER OF WORDS                                  -
+C                                                                      -
+CB    FORMAT(4H 6D ,  5E12.5/(6E12.5)) CHIISO                          -
+CB    FORMAT(12I6)                     ISOPEC                          -
+C                                                                      -
+CD    CHIISO(K,J)   FRACTION OF NEUTRONS EMITTED INTO GROUP J AS A     -
+CD                     RESULT OF FISSION IN ANY GROUP,USING SPECTRUM K -
+CD    ISOPEC(I)     ISOPEC(I)=K IMPLIES THAT SPECTRUM K IS USED        -
+CD                     TO CALCULATE EMISSION SPECTRUM FROM FISSION     -
+CD                     IN GROUP I                                      -
+C                                                                      -
+C                                                                      -
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+CR          SCATTERING SUB-BLOCK   (7D RECORD)                         -
+C                                                                      -
+CC        PRESENT IF LORD(N).GT.0                                      -
+C                                                                      -
+CL    ((SCAT(K,L),K=1,KMAX),L=1,LORDN)                                 -
+C                                                                      -
+CC    KMAX=SUM OVER J OF JBAND(J,N) WITHIN THE J-GROUP RANGE OF THIS   -
+CC       SUB-BLOCK.  IF M IS THE INDEX OF THE SUB-BLOCK, THE J-GROUP   -
+CC       RANGE CONTAINED WITHIN THIS SUB-BLOCK IS                      -
+CC       JL=(M-1)*((NGROUP-1)/NSBLOK+1)+1 TO JU=MIN0(NGROUP,JUP),      -
+CC       WHERE JUP=M*((NGROUP-1)/NSBLOK +1).                           -
+C                                                                      -
+CC    LORDN=LORD(N)                                                    -
+CC    N IS THE INDEX FOR THE LOOP OVER NSCMAX (SEE FILE STRUCTURE)     -
+C                                                                      -
+CW    KMAX*LORDN=NUMBER OF WORDS                                       -
+C                                                                      -
+CB    FORMAT(4H 7D ,  5E12.5/(6E12.5))                                 -
+C                                                                      -
+CD    SCAT(K,L)     SCATTERING MATRIX OF SCATTERING ORDER L, FOR       -
+CD                     REACTION TYPE IDENTIFIED BY IDSCT(N) FOR THIS   -
+CD                     BLOCK.  JBAND(J,N) VALUES FOR SCATTERING INTO   -
+CD                     GROUP J ARE STORED AT LOCATIONS K=SUM FROM 1    -
+CD                     TO (J-1) OF JBAND(J,N) PLUS 1 TO K-1+JBAND(J,N).-
+CD                     THE SUM IS ZERO WHEN J=1.  J-TO-J SCATTER IS    -
+CD                     THE IJJ(J,N)-TH ENTRY IN THE RANGE JBAND(J,N).  -
+CD                     VALUES ARE STORED IN THE ORDER (J+JUP),         -
+CD                     (J+JUP-1),...,(J+1),J,(J-1),...,(J-JDN),        -
+CD                     WHERE JUP=IJJ(J,N)-1 AND JDN=JBAND(J,N)-IJJ(J,N)-
+C                                                                      -
+C-----------------------------------------------------------------------
+
+CEOF
