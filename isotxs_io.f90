@@ -2,7 +2,7 @@ program isotxsio
 IMPLICIT NONE
 
 ! General control variables
-integer :: i, j
+integer :: i, j, r, c
 integer :: ifl, iout, ios
 character(80) :: fname, fname_out
 logical :: lfixstr
@@ -56,7 +56,7 @@ open(ifl, file = fname, status = 'old', form = 'unformatted', action = 'read', i
 call checkopen(ifl,fname,ios)
 
 ! ASCII out
-! open(unit = iout, file = fname_out, status = 'replace', action = 'write', iostat = ios)
+open(unit = iout, file = fname_out, status = 'replace', action = 'write', iostat = ios)
 call checkopen(iout,fname_out,ios)
 
 !------------------------------------------------------------------------------!
@@ -75,7 +75,7 @@ endif
 ! Check if characters need fixing
 if (hname .eq. 'TOSI  SX') then
 	lfixstr = .true.
-	write(*,101) 'fix_str = true'
+	write(*,101) 'fixing strings'
 endif
 ! fix characters if necessary
 if (lfixstr) then
@@ -84,7 +84,8 @@ if (lfixstr) then
 	call fixstr(huse(2))
 endif
 
-write(*,900) hname, (huse(i), i = 1,2), ivers
+write(iout,900) hname, (huse(i), i = 1,2), ivers
+
 ! make sure this is an ISOTXS file
 if (hname .ne. 'ISOTXS  ') then
 	write(*,101) 'FATAL -- invalid file name'
@@ -96,7 +97,7 @@ endif
 ! READ FILE CONTROL   (1D RECORD)
 !------------------------------------------------------------------------------!
 read(ifl,iostat = ios) ngroup, niso, maxup, maxdn, maxord, ichist, nscmax, nsblok
-write(*,901) ngroup, niso, maxup, maxdn, maxord, ichist, nscmax, nsblok
+write(iout,901) ngroup, niso, maxup, maxdn, maxord, ichist, nscmax, nsblok
 if (ios .ne. 0) then
 	write(*,101) 'FATAL -- error reading FILE CONTROL   (1D RECORD)'
 	write(*,'(a,i6)') 'return code = ', ios
@@ -121,9 +122,44 @@ else
 	                       (emax(j), j = 1,ngroup), emin, (loca(i), i = 1,niso)
 endif
 
+if (lfixstr) then
+	do i = 1,12
+		call fixstr(hsetid(i))
+	enddo
+	do i = 1,niso
+		call fixstr(hisonm(i))
+	enddo
+endif
+
+write(iout,'(/,a)') 'FILE DATA   (2D RECORD)'
+write(iout,101) 'HSETID(I)     HOLLERITH IDENTIFICATION OF FILE'
+write(iout,'(12a)') (hsetid(i), i = 1,12) 
+write(iout,101) 'HISONM(I)     HOLLERITH ISOTOPE LABEL FOR ISOTOPE I'
+i = 0
+do r = 1,((niso / 5) + 1)
+	do c = 1,5
+		i = i + 1
+		if (i .gt. niso) exit
+		write(iout,'(i3,x,a,3x)',advance = 'no') i, hisonm(i)
+	enddo
+	write(iout,*)
+enddo
+if (ichist .eq. 1) then
+	write(iout,101) 'CHI(J)        FILE-WIDE FISSION SPECTRUM'
+	call write_fivetable_real(chi,ngroup,iout)
+endif
+write(iout,101) 'VEL(J)        MEAN NEUTRON VELOCITY IN GROUP J (CM/SEC)'
+call write_fivetable_real(vel,ngroup,iout)
+write(iout,101) 'EMAX(J)       MAXIMUM ENERGY BOUND OF GROUP J (EV)'
+call write_fivetable_real(emax,ngroup,iout)
+write(iout,101) 'EMIN          MINIMUM ENERGY BOUND OF SET (EV)'
+write(iout,'(e12.6)') emin
+write(iout,101) 'LOCA(I)       NUMBER OF RECORDS TO BE SKIPPED TO READ DATA FOR ISOTOPE I'
+call write_fivetable_int(loca,ngroup,iout)
 
 close(ifl)
-endprogram isotxsio
+contains
+
 
 subroutine fixstr(str)
 IMPLICIT NONE
@@ -149,3 +185,37 @@ if (ios .ne. 0) then
 	stop
 endif
 endsubroutine checkopen
+
+subroutine write_fivetable_real(var,length,iout)
+IMPLICIT NONE
+real(4),dimension(:),intent(in) :: var
+integer,intent(in) :: length, iout
+integer :: r, c, i
+i = 0
+do r = 1,((length / 5) + 1)
+	do c = 1,5
+		i = i + 1
+		if (i .gt. length) exit
+		write(iout,'(i3,x,e12.6,3x)',advance = 'no') i, var(i)
+	enddo
+write(iout,*)
+enddo
+endsubroutine write_fivetable_real
+
+subroutine write_fivetable_int(var,length,iout)
+IMPLICIT NONE
+integer,dimension(:),intent(in) :: var
+integer,intent(in) :: length, iout
+integer :: r, c, i
+i = 0
+do r = 1,((length / 5) + 1)
+	do c = 1,5
+		i = i + 1
+		if (i .gt. length) exit
+		write(iout,'(i3,x,i6,3x)',advance = 'no') i, var(i)
+	enddo
+write(iout,*)
+enddo
+endsubroutine write_fivetable_int
+
+endprogram isotxsio
