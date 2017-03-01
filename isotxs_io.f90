@@ -65,13 +65,13 @@ call checkopen(iout,fname_out,ios)
 !------------------------------------------------------------------------------!
 ! READ FILE IDENTIFICATION
 !------------------------------------------------------------------------------!
-read(ifl) hname, (huse(i), i = 1,2), ivers
+read(ifl) hname, huse(1:2), ivers
 if ((ivers .lt. 0) .or. (ivers .gt. 20)) then
 	! need big-endian open
 	write(*,101) 'closing ISOTXS and opening with BIG_ENDIAN'
 	close(ifl)
 	open(ifl, file = fname, status = 'old', form = 'unformatted', action = 'read', convert = 'BIG_ENDIAN', iostat = ios)
-	read(ifl) hname, (huse(i), i = 1,2), ivers	
+	read(ifl) hname, huse(1:2), ivers	
 endif
 	
 
@@ -127,11 +127,9 @@ endif
 ! READ FILE DATA   (2D RECORD)
 !------------------------------------------------------------------------------!
 if (ichist .eq. 1) then
-	read(ifl,iostat = ios) (hsetid(i), i = 1,12), (hisonm(i), i = 1,niso), (chi(j), j = 1,ngroup), (vel(j), j = 1,ngroup),&
-	                       (emax(j), j = 1,ngroup), emin, (loca(i), i = 1,niso)
+	read(ifl,iostat = ios) hsetid(1:12), hisonm(1:niso), chi(1:ngroup), vel(1:ngroup), emax(1:ngroup), emin, loca(1:niso)
 else
-	read(ifl,iostat = ios) (hsetid(i), i = 1,12), (hisonm(i), i = 1,niso), (vel(j), j = 1,ngroup), &
-	                       (emax(j), j = 1,ngroup), emin, (loca(i), i = 1,niso)
+	read(ifl,iostat = ios) hsetid(1:12), hisonm(1:niso), vel(1:ngroup), emax(1:ngroup), emin, loca(1:niso)
 endif
 if (ios .ne. 0) then
 	write(*,101) 'FATAL -- error reading 2D RECORD'
@@ -177,15 +175,46 @@ call write_fivetable_int(loca,ngroup,iout)
 
 !------------------------------------------------------------------------------!
 ! READ FILE-WIDE CHI DATA   (3D RECORD)
+! TO-DO: This is untested. No file has this from the test suite.
 !------------------------------------------------------------------------------!
 if (ichist .gt. 1) then
-	! read(ifl,iostat = ios) (chi_fw(k,j),k = 1,ichist,j = 1,ngroup), (isspec(i),i = 1,ngroup)
+	! TO-DO: What is the order/shape of the chi_fw table?
+	read(ifl,iostat = ios) chi_fw(1:ichist,1:ngroup), isspec(1:ngroup)
 	if (ios .ne. 0) then
 		write(*,101) 'FATAL -- error reading 3D RECORD'
 		write(*,'(a,i6)') 'error code ', ios
 		stop
 	endif
+	write(iout,'(/,a)') 'FILE-WIDE CHI DATA   (3D RECORD)'
+	write(iout,101) 'CHI(K,J)      FRACTION OF NEUTRONS EMITTED INTO GROUP J AS A RESULT OF FISSION IN ANY GROUP,USING SPECTRUM K'
+	do i = 1,ichist
+		do j = 1,ngroup
+			write(iout,'(e12.6,3x)',advance = 'no') chi_fw(i,j)
+		enddo
+		write(iout,*)
+	enddo
+	write(iout,101) 'ISSPEC(I)     ISSPEC(I)=K IMPLIES THAT SPECTRUM K IS USED TO CALCULATE EMISSION SPECTRUM FROM FISSION IN GROUP I'
+	call write_fivetable_int(isspec,ngroup,iout)
 endif
+
+! *************(REPEAT FOR ALL ISOTOPES)                   
+! *         ISOTOPE CONTROL AND GROUP                      
+! *                        INDEPENDENT DATA    ALWAYS      
+! *         PRINCIPAL CROSS SECTIONS           ALWAYS      
+! *         ISOTOPE CHI DATA                   ICHI.GT.1   
+! *                                                        
+! *  **********(REPEAT TO NSCMAX SCATTERING BLOCKS)        
+! *  *  *******(REPEAT FROM 1 TO NSBLOK)                   
+! *  *  *   SCATTERING SUB-BLOCK               LORD(N).GT.0
+! *************                                            
+do i = 1,niso
+	!------------------------------------------------------------------------------!
+	! READ ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
+	!------------------------------------------------------------------------------!
+	
+	
+enddo
+
 
 close(ifl)
 contains
