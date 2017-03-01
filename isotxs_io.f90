@@ -3,7 +3,7 @@ IMPLICIT NONE
 
 ! General control variables
 integer :: i, j, r, c
-integer :: ifl, iout, ios
+integer :: ifl, iout, ios = 0
 character(80) :: fname, fname_out
 logical :: lfixstr
 
@@ -19,6 +19,9 @@ character(8),dimension(:),allocatable :: hisonm
 real(4),dimension(:),allocatable :: chi, vel, emax
 real(4) :: emin
 integer,dimension(:),allocatable :: loca
+! FILE-WIDE CHI DATA   (3D RECORD)
+real(4),dimension(:,:),allocatable :: chi_fw
+integer,dimension(:),allocatable :: isspec
 
 ! Formats
 ! CHARACTER
@@ -105,11 +108,20 @@ if (ios .ne. 0) then
 endif
 
 write(*,101) 'allocating memory'
+! FILE DATA   (2D RECORD)
 allocate(hisonm(niso))
-allocate(chi(ngroup))
+if (ichist .eq. 1) then
+	allocate(chi(ngroup))
+endif
 allocate(vel(ngroup))
 allocate(emax(ngroup))
 allocate(loca(niso))
+! FILE-WIDE CHI DATA   (3D RECORD)
+if (ichist .gt. 1) then
+	allocate(chi_fw(ichist,ngroup))
+	allocate(isspec(ngroup))
+endif
+
 
 !------------------------------------------------------------------------------!
 ! READ FILE DATA   (2D RECORD)
@@ -120,6 +132,11 @@ if (ichist .eq. 1) then
 else
 	read(ifl,iostat = ios) (hsetid(i), i = 1,12), (hisonm(i), i = 1,niso), (vel(j), j = 1,ngroup), &
 	                       (emax(j), j = 1,ngroup), emin, (loca(i), i = 1,niso)
+endif
+if (ios .ne. 0) then
+	write(*,101) 'FATAL -- error reading 2D RECORD'
+	write(*,'(a,i6)') 'error code ', ios
+	stop
 endif
 
 if (lfixstr) then
@@ -156,6 +173,19 @@ write(iout,101) 'EMIN          MINIMUM ENERGY BOUND OF SET (EV)'
 write(iout,'(e12.6)') emin
 write(iout,101) 'LOCA(I)       NUMBER OF RECORDS TO BE SKIPPED TO READ DATA FOR ISOTOPE I'
 call write_fivetable_int(loca,ngroup,iout)
+
+
+!------------------------------------------------------------------------------!
+! READ FILE-WIDE CHI DATA   (3D RECORD)
+!------------------------------------------------------------------------------!
+if (ichist .gt. 1) then
+	! read(ifl,iostat = ios) (chi_fw(k,j),k = 1,ichist,j = 1,ngroup), (isspec(i),i = 1,ngroup)
+	if (ios .ne. 0) then
+		write(*,101) 'FATAL -- error reading 3D RECORD'
+		write(*,'(a,i6)') 'error code ', ios
+		stop
+	endif
+endif
 
 close(ifl)
 contains
