@@ -22,6 +22,21 @@ integer,dimension(:),allocatable :: loca
 ! FILE-WIDE CHI DATA   (3D RECORD)
 real(4),dimension(:,:),allocatable :: chi_fw
 integer,dimension(:),allocatable :: isspec
+! ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
+character(8),dimension(:),allocatable :: habsid, hident, hmat
+real(4),dimension(:),allocatable :: amass, efiss, ecapt, temp, sigpot, adens
+integer,dimension(:),allocatable :: kbr,  ichi, ifis, ialf, inp, in2n, ind, int, ltot, ltrn, istrpd
+integer,dimension(:,:),allocatable :: idsct, lord
+integer,dimension(:,:,:),allocatable :: jband, ijj
+! PRINCIPAL CROSS SECTIONS   (5D RECORD)
+real(4),dimension(:,:,:),allocatable :: strpl, stotpl, strpd
+real(4),dimension(:,:),allocatable :: sngam, sfis, snutot, chiso, snalf, snp, sn2n, snd, snt
+! ISOTOPE CHI DATA (6D RECORD)
+real(4),dimension(:,:,:),allocatable :: chiiso
+integer,dimension(:,:),allocatable :: isopec
+! SCATTERING SUB-BLOCK   (7D RECORD)
+integer :: kmax
+real(4),dimension(:,:,:),allocatable :: scat
 
 ! Formats
 ! CHARACTER
@@ -121,6 +136,59 @@ if (ichist .gt. 1) then
 	allocate(chi_fw(ichist,ngroup))
 	allocate(isspec(ngroup))
 endif
+! ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
+allocate(habsid(niso))
+allocate(hident(niso))
+allocate(hmat(niso))
+allocate(amass(niso))
+allocate(efiss(niso))
+allocate(ecapt(niso))
+allocate(temp(niso))
+allocate(sigpot(niso))
+allocate(adens(niso))
+allocate(kbr(niso))
+allocate(ichi(niso))
+allocate(ifis(niso))
+allocate(ialf(niso))
+allocate(inp(niso))
+allocate(in2n(niso))
+allocate(ind(niso))
+allocate(int(niso))
+allocate(ltot(niso))
+allocate(ltrn(niso))
+allocate(istrpd(niso))
+allocate(idsct(niso,nscmax))
+allocate(lord(niso,nscmax))
+allocate(jband(niso,ngroup,nscmax))
+allocate(ijj(niso,ngroup,nscmax))
+! PRINCIPAL CROSS SECTIONS   (5D RECORD)
+allocate(strpl(niso,ngroup,nscmax))
+allocate(stotpl(niso,ngroup,nscmax))
+allocate(sngam(niso,ngroup))
+allocate(sfis(niso,ngroup))
+allocate(snutot(niso,ngroup))
+allocate(snalf(niso,ngroup))
+allocate(chiso(niso,ngroup))
+allocate(snp(niso,ngroup))
+allocate(sn2n(niso,ngroup))
+allocate(snd(niso,ngroup))
+allocate(snt(niso,ngroup))
+! ISOTOPE CHI DATA   (6D RECORD)
+allocate(chiiso(niso,ichist,ngroup))
+allocate(isopec(niso,ngroup))
+! SCATTERING SUB-BLOCK   (7D RECORD)
+! TO-DO : ADDRESS THE SIZE OF THIS
+allocate(scat(niso,ngroup * ngroup,3))
+
+! READ PRINCIPAL CROSS SECTIONS   (5D RECORD)
+! TO-DO: Is this ever going to be important?
+! CD    ISTRPD        NUMBER OF COORDINATE DIRECTIONS FOR WHICH          -
+! CD                     COORDINATE DEPENDENT TRANSPORT CROSS SECTIONS   -
+! CD                     ARE GIVEN. IF ISTRPD=0, NO COORDINATE DEPENDENT -
+! CD                     TRANSPORT CROSS SECTIONS ARE GIVEN.             -
+! CD    STRPD(J,I)    COORDINATE DIRECTION I TRANSPORT CROSS SECTION     -
+! CD                               (PRESENT IF ISTRPD.GT.0)              -
+! allocate(strpd(niso,ngroup,maxval(istrpd)))
 
 
 !------------------------------------------------------------------------------!
@@ -211,6 +279,76 @@ do i = 1,niso
 	!------------------------------------------------------------------------------!
 	! READ ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
 	!------------------------------------------------------------------------------!
+	read(ifl,iostat = ios) habsid(i), hident(i), hmat(i), amass(i), efiss(i), ecapt(i), temp(i), sigpot(i), adens(i), &
+	                       kbr(i), ichi(i), ifis(i), ialf(i), inp(i), in2n(i), ind(i), int(i), ltot(i), ltrn(i), &
+	                       istrpd(i), idsct(i,1:nscmax), lord(i,1:nscmax), jband(i,1:ngroup,1:nscmax), &
+	                       ijj(i,1:ngroup,1:nscmax)
+	if (ios .ne. 0) then
+		write(*,101) 'FATAL -- error reading 4D RECORD'
+		write(*,'(a,i3,x,a)') 'isotope ', i, habsid(i)
+		write(*,'(a,i6)') 'error code ', ios
+		stop
+	endif
+	if (istrpd(i) .ne. 0) then
+		write(*,101) 'FATAL -- istrpd .ne. 0'
+		write(*,101) 'This mode is not supported. See 4D RECORD'
+		write(*,'(a,i3,x,a)') 'isotope ', i, habsid(i)
+		stop
+	endif
+	if (lfixstr) then
+		call fixstr(habsid(i))
+		call fixstr(hident(i))
+		call fixstr(hmat(i))
+	endif
+	write(*,*) habsid(i)
+	
+	
+	
+	!------------------------------------------------------------------------------!
+	! READ PRINCIPAL CROSS SECTIONS   (5D RECORD)
+	!------------------------------------------------------------------------------!
+	! TO-DO: Adress when some/all of these XS are present.
+	! can I: Read to a variable (what kind?) and then parse through that variable one step at a time?
+	! Maybe read advance = 'no'?
+	read(ifl,iostat = ios) strpl(i,1:ngroup,1:ltrn(i)), stotpl(i,1:ngroup,1:ltot(i)), sngam(i,1:ngroup), sfis(i,1:ngroup),&
+	                       snutot(i,1:ngroup), chiso(i,1:ngroup), snalf(i,1:ngroup), snp(i,1:ngroup), sn2n(i,1:ngroup), &
+	                       snd(i,1:ngroup), snt(i,1:ngroup)
+	if (ios .ne. 0) then
+		write(*,101) 'FATAL -- error reading 5D RECORD'
+		write(*,'(a,i3,x,a)') 'isotope ', i, habsid(i)
+		write(*,'(a,i6)') 'error code ', ios
+		stop
+	endif
+	
+	!------------------------------------------------------------------------------!
+	! READ ISOTOPE CHI DATA   (6D RECORD)
+	!------------------------------------------------------------------------------!
+	if (ichi(i) .gt. 1) then
+		read(ifl,iostat = ios) chiiso(i,1:ichist,1:ngroup), isopec(i,1:ngroup)
+		if (ios .ne. 0) then
+			write(*,101) 'FATAL -- error reading 6D RECORD'
+			write(*,'(a,i3,x,a)') 'isotope ', i, habsid(i)
+			write(*,'(a,i6)') 'error code ', ios
+			stop
+		endif
+	endif
+	
+	!------------------------------------------------------------------------------!
+	! READ SCATTERING SUB-BLOCK   (7D RECORD)
+	!------------------------------------------------------------------------------!
+	do j = 1,nscmax
+		if (lord(i,j) .gt. 0) then
+			! CC    KMAX=SUM OVER J OF JBAND(J,N) WITHIN THE J-GROUP RANGE OF THIS   -
+			! CC       SUB-BLOCK.  IF M IS THE INDEX OF THE SUB-BLOCK, THE J-GROUP   -
+			! CC       RANGE CONTAINED WITHIN THIS SUB-BLOCK IS                      -
+			! CC       JL=(M-1)*((NGROUP-1)/NSBLOK+1)+1 TO JU=MIN0(NGROUP,JUP),      -
+			! CC       WHERE JUP=M*((NGROUP-1)/NSBLOK +1).                           -
+			read(ifl) !scat(i,1:kmax,1:lord(i,j))
+		endif
+	enddo
+	
+	
+	
 	
 	
 enddo
