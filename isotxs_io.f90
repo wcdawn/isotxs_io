@@ -4,6 +4,7 @@ IMPLICIT NONE
 ! General control variables
 integer :: i, j, r, c
 integer :: ifl, iout, ios = 0
+integer :: ichiread, ifisread, ialfread, inpread, in2nread, indread, intread ! reading checks
 character(80) :: fname, fname_out
 logical :: lfixstr
 
@@ -88,7 +89,7 @@ if ((ivers .lt. 0) .or. (ivers .gt. 20)) then
 	open(ifl, file = fname, status = 'old', form = 'unformatted', action = 'read', convert = 'BIG_ENDIAN', iostat = ios)
 	read(ifl) hname, huse(1:2), ivers	
 endif
-	
+
 
 ! Check if characters need fixing
 if (hname .eq. 'TOSI  SX') then
@@ -195,10 +196,11 @@ allocate(scat(niso,ngroup * ngroup,3))
 ! READ FILE DATA   (2D RECORD)
 !------------------------------------------------------------------------------!
 if (ichist .eq. 1) then
-	read(ifl,iostat = ios) hsetid(1:12), hisonm(1:niso), chi(1:ngroup), vel(1:ngroup), emax(1:ngroup), emin, loca(1:niso)
+	ichiread = ngroup
 else
-	read(ifl,iostat = ios) hsetid(1:12), hisonm(1:niso), vel(1:ngroup), emax(1:ngroup), emin, loca(1:niso)
+	ichiread = 0
 endif
+read(ifl,iostat = ios) hsetid(1:12), hisonm(1:niso), chi(1:ichiread), vel(1:ngroup), emax(1:ngroup), emin, loca(1:niso)
 if (ios .ne. 0) then
 	write(*,101) 'FATAL -- error reading 2D RECORD'
 	write(*,'(a,i6)') 'error code ', ios
@@ -243,10 +245,10 @@ call write_fivetable_int(loca,ngroup,iout)
 
 !------------------------------------------------------------------------------!
 ! READ FILE-WIDE CHI DATA   (3D RECORD)
-! TO-DO: This is untested. No file has this from the test suite.
+! TO-DO: This is untested. No file from the test suite has this.
 !------------------------------------------------------------------------------!
 if (ichist .gt. 1) then
-	! TO-DO: What is the order/shape of the chi_fw table?
+	write(*,101) 'WARNING -- This is untested. No file from the test suite has this.'
 	read(ifl,iostat = ios) chi_fw(1:ichist,1:ngroup), isspec(1:ngroup)
 	if (ios .ne. 0) then
 		write(*,101) 'FATAL -- error reading 3D RECORD'
@@ -310,9 +312,23 @@ do i = 1,niso
 	! TO-DO: Adress when some/all of these XS are present.
 	! can I: Read to a variable (what kind?) and then parse through that variable one step at a time?
 	! Maybe read advance = 'no'?
-	read(ifl,iostat = ios) strpl(i,1:ngroup,1:ltrn(i)), stotpl(i,1:ngroup,1:ltot(i)), sngam(i,1:ngroup), sfis(i,1:ngroup),&
-	                       snutot(i,1:ngroup), chiso(i,1:ngroup), snalf(i,1:ngroup), snp(i,1:ngroup), sn2n(i,1:ngroup), &
-	                       snd(i,1:ngroup), snt(i,1:ngroup)
+	ifisread = 0
+	ichiread = 0
+	ialfread = 0
+	inpread  = 0
+	in2nread = 0
+	indread  = 0
+	intread  = 0
+	if (ifis(i) .gt. 0) ifisread = ngroup
+	if (ichi(i) .eq. 1) ichiread = ngroup
+	if (ialf(i) .gt. 0) ialfread = ngroup
+	if (inp(i)  .gt. 0) inpread  = ngroup
+	if (in2n(i) .gt. 0) in2nread = ngroup
+	if (ind(i)  .gt. 0) indread  = ngroup
+	if (int(i)  .gt. 0) intread  = ngroup
+	read(ifl,iostat = ios) strpl(i,1:ngroup,1:ltrn(i)), stotpl(i,1:ngroup,1:ltot(i)), sngam(i,1:ngroup), sfis(i,1:ifisread), &
+	                       snutot(i,1:ifisread), chiso(i,1:ichiread), snalf(i,1:ialfread), snp(i,1:inpread), sn2n(i,1:in2nread), &
+	                       snd(i,1:indread), snt(i,1:intread)
 	if (ios .ne. 0) then
 		write(*,101) 'FATAL -- error reading 5D RECORD'
 		write(*,'(a,i3,x,a)') 'isotope ', i, habsid(i)
@@ -322,9 +338,11 @@ do i = 1,niso
 	
 	!------------------------------------------------------------------------------!
 	! READ ISOTOPE CHI DATA   (6D RECORD)
+	! TO-DO: This is untested. No file from the test suite has this.
 	!------------------------------------------------------------------------------!
 	if (ichi(i) .gt. 1) then
-		read(ifl,iostat = ios) chiiso(i,1:ichist,1:ngroup), isopec(i,1:ngroup)
+		write(*,101) 'WARNING -- This is untested. No file from the test suite has this.'
+		read(ifl,iostat = ios) chiiso(i,1:ichi(i),1:ngroup), isopec(i,1:ngroup)
 		if (ios .ne. 0) then
 			write(*,101) 'FATAL -- error reading 6D RECORD'
 			write(*,'(a,i3,x,a)') 'isotope ', i, habsid(i)
@@ -343,6 +361,8 @@ do i = 1,niso
 			! CC       RANGE CONTAINED WITHIN THIS SUB-BLOCK IS                      -
 			! CC       JL=(M-1)*((NGROUP-1)/NSBLOK+1)+1 TO JU=MIN0(NGROUP,JUP),      -
 			! CC       WHERE JUP=M*((NGROUP-1)/NSBLOK +1).                           -
+			! kmax = 0
+			! do k = 1,
 			read(ifl) !scat(i,1:kmax,1:lord(i,j))
 		endif
 	enddo
