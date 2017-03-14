@@ -267,6 +267,11 @@ if (ichist .gt. 1) then
 	call write_fivetable_int(isspec,ngroup,iout)
 endif
 
+write(iout,101)
+write(iout,101) '********************************************************************************'
+write(iout,101) 'INDIVIDUAL ISOTOPIC DATA'
+write(iout,101) '********************************************************************************'
+
 ! *************(REPEAT FOR ALL ISOTOPES)                   
 ! *         ISOTOPE CONTROL AND GROUP                      
 ! *                        INDEPENDENT DATA    ALWAYS      
@@ -278,6 +283,7 @@ endif
 ! *  *  *   SCATTERING SUB-BLOCK               LORD(N).GT.0
 ! *************                                            
 do i = 1,niso
+	write(iout,'(a,i3)') 'ISOTOPE', i
 	!------------------------------------------------------------------------------!
 	! READ ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
 	!------------------------------------------------------------------------------!
@@ -292,8 +298,12 @@ do i = 1,niso
 		stop
 	endif
 	if (istrpd(i) .ne. 0) then
-		write(*,101) 'FATAL -- istrpd .ne. 0'
+		write(*,101) 'FATAL -- istrpd(i) .ne. 0'
 		write(*,101) 'This mode is not supported. See 4D RECORD'
+		write(*,101) 'CD    ISTRPD        NUMBER OF COORDINATE DIRECTIONS FOR WHICH          -'
+		write(*,101) 'CD                     COORDINATE DEPENDENT TRANSPORT CROSS SECTIONS   -'
+		write(*,101) 'CD                     ARE GIVEN. IF ISTRPD=0, NO COORDINATE DEPENDENT -'
+		write(*,101) 'CD                     TRANSPORT CROSS SECTIONS ARE GIVEN.             -'
 		write(*,'(a,i3,x,a)') 'isotope ', i, habsid(i)
 		stop
 	endif
@@ -302,8 +312,8 @@ do i = 1,niso
 		call fixstr(hident(i))
 		call fixstr(hmat(i))
 	endif
-	write(*,*) habsid(i)
 	
+	write(iout,101) ''
 	
 	
 	!------------------------------------------------------------------------------!
