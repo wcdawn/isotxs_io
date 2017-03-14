@@ -59,7 +59,27 @@ real(4),dimension(:,:,:),allocatable :: scat
            /, i6, ' ICHIST        FILE-WIDE FISSION SPECTRUM FLAG', &
            /, i6, ' NSCMAX        MAXIMUM NUMBER OF BLOCKS OF SCATTERING DATA', &
            /, i6, ' NSBLOK        SUBBLOCKING CONTROL FOR SCATTER MATRICES')
-
+902 format('ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)', &
+           /, a,     ' HABSID        HOLLERITH ABSOLUTE ISOTOPE LABEL', &
+           /, a,     ' HIDENT        IDENTIFIER OF LIBRARY FROM WHICH BASIC DATA CAME', &
+           /, a,     ' HMAT          ISOTOPE IDENTIFICATION', &
+           /, f6.2, ' AMASS         GRAM ATOMIC WEIGHT', &
+           /, e6.1, ' EFISS         TOTAL THERMAL ENERGY YIELD/FISSION (W.SEC/FISS)', &
+           /, e6.1, ' ECAPT         TOTAL THERMAL ENERGY YIELD/CAPTURE (W.SEC/CAPT)', &
+           /, e6.1, ' TEMP          ISOTOPE TEMPERATURE (DEGREES KELVIN)', &
+           /, e6.1, ' SIGPOT        AVERAGE EFFECTIVE POTENTIAL SCATTERING IN RESONANCE RANGE (BARNS/ATOM)', &
+           /, e6.1, ' ADENS         DENSITY OF ISOTOPE IN MIXTURE IN WHICH ISOTOPE CROSS SECTIONS WERE GENERATED (A/BARN-CM)', &
+           /, i6,    ' KBR           ISOTOPE CLASSIFICATION (SEE DOCUMENTATION)', &
+           /, i6,    ' ICHI          ISOTOPE FISSION SPECTRUM FLAG', &
+           /, i6,    ' IFIS          (N,F) CROSS SECTION FLAG ', &
+           /, i6,    ' IALF          (N,ALPHA) CROSS SECTION FLAG', &
+           /, i6,    ' INP           (N,P) CROSS SECTION FLAG', &
+           /, i6,    ' IN2N          (N,2N) CROSS SECTION FLAG', &
+           /, i6,    ' IND           (N,D) CROSS SECTION FLAG', &
+           /, i6,    ' INT           (N,T) CROSS SECTION FLAG', &
+           /, i6,    ' LTOT          NUMBER OF MOMENTS OF TOTAL CROSS SECTION PROVIDED', &
+           /, i6,    ' LTRN          NUMBER OF MOMENTS OF TRANSPORT CROSS SECTION', &
+           /, i6,    ' ISTRPD        NUMBER OF COORDINATE DIRECTIONS ... (MUST .EQ. 0)')
 ifl = 11
 fname = 'ISOTXS.20'
 iout = 21
@@ -283,7 +303,7 @@ write(iout,101) '***************************************************************
 ! *  *  *   SCATTERING SUB-BLOCK               LORD(N).GT.0
 ! *************                                            
 do i = 1,niso
-	write(iout,'(a,i3)') 'ISOTOPE', i
+	write(iout,'(/,a,i3)') 'ISOTOPE', i
 	!------------------------------------------------------------------------------!
 	! READ ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
 	!------------------------------------------------------------------------------!
@@ -313,15 +333,14 @@ do i = 1,niso
 		call fixstr(hmat(i))
 	endif
 	
-	write(iout,101) ''
+	write(iout,902) habsid(i), hident(i), hmat(i), amass(i), efiss(i), ecapt(i), temp(i), sigpot(i), adens(i), &
+	                kbr(i), ichi(i), ifis(i), ialf(i), inp(i), in2n(i), ind(i), int(i), ltot(i), ltrn(i), &
+	                istrpd(i)
 	
 	
 	!------------------------------------------------------------------------------!
 	! READ PRINCIPAL CROSS SECTIONS   (5D RECORD)
 	!------------------------------------------------------------------------------!
-	! TO-DO: Adress when some/all of these XS are present.
-	! can I: Read to a variable (what kind?) and then parse through that variable one step at a time?
-	! Maybe read advance = 'no'?
 	ifisread = 0
 	ichiread = 0
 	ialfread = 0
