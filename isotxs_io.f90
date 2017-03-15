@@ -81,6 +81,7 @@ real(4),dimension(:,:,:),allocatable :: scat
            /, i6,    ' LTRN          NUMBER OF MOMENTS OF TRANSPORT CROSS SECTION', &
            /, i6,    ' ISTRPD        NUMBER OF COORDINATE DIRECTIONS ... (MUST .EQ. 0)')
 ifl = 11
+! fname = '16.4_Fuel.ISOTXS_complete'
 fname = 'ISOTXS.20'
 iout = 21
 fname_out = 'ascii.out'
