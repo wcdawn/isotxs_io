@@ -174,12 +174,13 @@ integer,intent(in) :: length, iout
 integer :: r, c, i
 i = 0
 do r = 1,((length / 5) + 1)
+	if (i .eq. length) exit
 	do c = 1,5
 		i = i + 1
 		if (i .gt. length) exit
 		write(iout,'(i3,x,e12.6,3x)',advance = 'no') i, var(i)
 	enddo
-if ((i .ne. length) .and. (r .ne. 5)) write(iout,*)
+	write(iout,*)
 enddo
 endsubroutine write_fivetable_real
 
@@ -190,12 +191,13 @@ integer,intent(in) :: length, iout
 integer :: r, c, i
 i = 0
 do r = 1,((length / 5) + 1)
+	if (i .eq. length) exit
 	do c = 1,5
 		i = i + 1
 		if (i .gt. length) exit
 		write(iout,'(i3,x,a,3x)',advance = 'no') i, var(i)
 	enddo
-if ((i .ne. length) .and. (r .ne. 5)) write(iout,*)
+	write(iout,*)
 enddo
 endsubroutine write_fivetable_char
 
@@ -206,12 +208,13 @@ integer,intent(in) :: length, iout
 integer :: r, c, i
 i = 0
 do r = 1,((length / 5) + 1)
+	if (i .eq. length) exit
 	do c = 1,5
 		i = i + 1
 		if (i .gt. length) exit
 		write(iout,'(i3,x,i6,3x)',advance = 'no') i, var(i)
 	enddo
-if ((i .ne. length) .and. (r .ne. 5)) write(iout,*)
+	write(iout,*)
 enddo
 endsubroutine write_fivetable_int
 

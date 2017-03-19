@@ -101,7 +101,7 @@ endsubroutine allocate_memory
 
 subroutine xs_structure
 IMPLICIT NONE
-integer :: i
+integer :: i,j
 
 allocate(xs(niso))
 do i = 1,niso
@@ -137,6 +137,10 @@ do i = 1,niso
 	xs(i)%sign2n(:)   = sn2n(i,:)     * adens(i) * 1.0d24
 	xs(i)%sigd(:)     = snd(i,:)      * adens(i) * 1.0d24
 	xs(i)%sigt(:)     = snt(i,:)      * adens(i) * 1.0d24
+	
+	do j = 1,nscmax
+		
+	enddo
 enddo
 
 endsubroutine xs_structure

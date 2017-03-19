@@ -12,10 +12,11 @@ IMPLICIT NONE
 ! type(xs_library),allocatable,dimension(:),intent(in) :: xs
 ! integer,intent(in) :: niso, ngroup
 integer :: i, j, g
+integer :: iteration
 ! real(8),allocatable,dimension(:,:) :: sigtr, sigtot
 real(8),allocatable,dimension(:)   :: signg, nusigf, chi, sigalf, sigp, sign2n, sigd, sigt
 real(8),allocatable,dimension(:)   :: phi, source, xs_total
-real(8) :: k, tol, scat_sum
+real(8) :: k, tol, converge, scat_sum, fiss_sum, scat_source_sum
 
 allocate(signg(ngroup))
 allocate(nusigf(ngroup))
@@ -62,7 +63,15 @@ do j = 1,ngroup
 enddo
 phi = 1.0d0
 k   = 1.0d0
-
+iteration = 0
+tol = 1.0d-5
+converge = 1.0d0
+do while (converge .gt. tol)
+	iteration = iteration + 1
+	converge = 1.0d-10
+enddo
+write(*,'(a,i3)') 'iteration ', iteration
+write(*,'(a,f12.10)') 'k ', k
 
 endsubroutine spectrum_solve
 

@@ -225,6 +225,7 @@ do i = 1,niso
 	enddo	
 enddo
 
+lascii = .false.
 if (lascii) then
 	write(*,101) 'writing ascii output'
 	call ascii_out()
