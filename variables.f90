@@ -93,13 +93,51 @@ allocate(isopec(niso,ngroup))
 allocate(scat(niso,nscmax,ngroup * ngroup,3))
 endsubroutine allocate_memory
 
-subroutine xs_structure
+subroutine xs_structure(niso,ngroup,nscmax)
 IMPLICIT NONE
+integer :: i
+integer,intent(in) :: niso, ngroup, nscmax
 
 type xs_library
-	real(4),allocatable,dimension(:,:) :: sigtr, sigtot
-	real(4),allocatable,dimension(:) :: signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
+	real(8),allocatable,dimension(:,:) :: sigtr, sigtot
+	real(8),allocatable,dimension(:) :: signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
 endtype
+type(xs_library) xs(niso)
+do i = 1,niso
+	allocate(xs(i)%sigtr(ngroup,nscmax))
+	allocate(xs(i)%sigtot(ngroup,nscmax))
+	allocate(xs(i)%signg(ngroup))
+	allocate(xs(i)%sigf(ngroup))
+	allocate(xs(i)%nuf(ngroup))
+	allocate(xs(i)%chi(ngroup))
+	allocate(xs(i)%sigalf(ngroup))
+	allocate(xs(i)%sigp(ngroup))
+	allocate(xs(i)%sign2n(ngroup))
+	allocate(xs(i)%sigd(ngroup))
+	allocate(xs(i)%sigt(ngroup))
+enddo
+
+do i = 1,niso
+	if (abs(adens(i) - 1.0d0) .lt. 1.0d-2) then
+		write(*,'(a)') 'WARNING -- adens(i) .eq. 1.0d0'
+		write(*,'(a)') 'are you working with macro or micro xs?'
+		write(*,'(a,i3)') 'isotope ', i
+		write(*,'(a,e12.6)') 'adens ', adens(i)
+		stop
+	endif
+	
+	xs(i)%sigtr(:,:)  = strpl(i,:,:)  * adens(i) * 1.0d-24
+	xs(i)%sigtot(:,:) = stotpl(i,:,:) * adens(i) * 1.0d-24
+	xs(i)%signg(:)    = sngam(i,:)    * adens(i) * 1.0d-24
+	xs(i)%sigf(:)     = sfis(i,:)     * adens(i) * 1.0d-24
+	xs(i)%nuf(:)      = snutot(i,:)
+	xs(i)%chi(:)      = chiso(i,:)    
+	xs(i)%sigalf(:)   = snalf(i,:)    * adens(i) * 1.0d-24
+	xs(i)%sigp(:)     = snp(i,:)      * adens(i) * 1.0d-24
+	xs(i)%sign2n(:)   = sn2n(i,:)     * adens(i) * 1.0d-24
+	xs(i)%sigd(:)     = snd(i,:)      * adens(i) * 1.0d-24
+	xs(i)%sigt(:)     = snt(i,:)      * adens(i) * 1.0d-24
+enddo
 
 endsubroutine xs_structure
 

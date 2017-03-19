@@ -17,7 +17,7 @@ ifl = 11
 ! fname = '16.4_Fuel.ISOTXS_complete'
 fname = 'ISOTXS.20'
 lfixstr = .false.
-lascii  = .true.
+lascii  = .false.
 
 !------------------------------------------------------------------------------!
 ! OPEN FILES
@@ -236,6 +236,8 @@ if (lascii) then
                    chiiso,isopec, &
                    kmax,scat)
 endif
+
+call xs_structure(niso,ngroup,nscmax)
 
 close(ifl)
 endprogram isotxsio
