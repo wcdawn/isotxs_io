@@ -1,6 +1,7 @@
 program isotxsio
 use text_io
 use variables
+use spectrum_calc
 IMPLICIT NONE
 
 ! General control variables
@@ -237,7 +238,7 @@ if (lascii) then
                    kmax,scat)
 endif
 
-call xs_structure(niso,ngroup,nscmax)
+call xs_structure()
 
 close(ifl)
 endprogram isotxsio
