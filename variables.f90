@@ -29,6 +29,12 @@ integer,dimension(:,:),allocatable :: isopec
 ! SCATTERING SUB-BLOCK   (7D RECORD)
 integer :: kmax
 real(4),dimension(:,:,:,:),allocatable :: scat
+! xs_structure
+type xs_library
+	real(8),allocatable,dimension(:,:) :: sigtr, sigtot
+	real(8),allocatable,dimension(:) :: signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
+endtype
+type(xs_library),allocatable,dimension(:) :: xs
 
 contains
 
@@ -97,11 +103,7 @@ subroutine xs_structure
 IMPLICIT NONE
 integer :: i
 
-type xs_library
-	real(8),allocatable,dimension(:,:) :: sigtr, sigtot
-	real(8),allocatable,dimension(:) :: signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
-endtype
-type(xs_library) xs(niso)
+allocate(xs(niso))
 do i = 1,niso
 	allocate(xs(i)%sigtr(ngroup,nscmax))
 	allocate(xs(i)%sigtot(ngroup,nscmax))

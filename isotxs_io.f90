@@ -227,18 +227,13 @@ enddo
 
 if (lascii) then
 	write(*,101) 'writing ascii output'
-	call ascii_out(hname,huse,ivers, &
-                   ngroup,niso,maxup,maxdn,maxord,ichist,nscmax,nsblok, &
-                   hsetid,hisonm,chi,vel,emax,emin,loca, &
-                   chi_fw, isspec, &
-                   habsid,hident,hmat,amass,efiss,ecapt,temp,sigpot,adens,kbr,ichi,ifis,ialf,inp,in2n,ind,int,ltot,ltrn,istrpd, &
-                   idsct,lord,jband,ijj, &
-                   strpl,stotpl,strpd,sngam,sfis,snutot,chiso,snalf,snp,sn2n,snd,snt, &
-                   chiiso,isopec, &
-                   kmax,scat)
+	call ascii_out()
 endif
 
+write(*,101) 'building xs structure'
 call xs_structure()
+write(*,101) 'spectral calc'
+call spectrum_solve()
 
 close(ifl)
 endprogram isotxsio

@@ -1,50 +1,12 @@
 module text_io
+use variables
 contains
 
-subroutine ascii_out(hname,huse,ivers, &
-                     ngroup,niso,maxup,maxdn,maxord,ichist,nscmax,nsblok, &
-                     hsetid,hisonm,chi,vel,emax,emin,loca, &
-                     chi_fw, isspec, &
-                     habsid,hident,hmat,amass,efiss,ecapt,temp,sigpot,adens,kbr,ichi,ifis,ialf,inp,in2n,ind,int,ltot,ltrn,istrpd, &
-                     idsct,lord,jband,ijj, &
-                     strpl,stotpl,strpd,sngam,sfis,snutot,chiso,snalf,snp,sn2n,snd,snt, &
-                     chiiso,isopec, &
-                     kmax,scat)
+subroutine ascii_out
 IMPLICIT NONE
 integer :: i, j, k, iout, ios = 0
 integer :: scat_point
 character(80) :: fname_out
-
-! FILE IDENTIFICATION
-character(8),intent(in) :: hname
-character(8),dimension(2),intent(in) :: huse
-integer,intent(in) :: ivers
-! FILE CONTROL   (1D RECORD)
-integer,intent(in) :: ngroup, niso, maxup, maxdn, maxord, ichist, nscmax, nsblok
-! FILE DATA   (2D RECORD)
-character(8),dimension(12),intent(in) :: hsetid
-character(8),dimension(:),allocatable,intent(in) :: hisonm
-real(4),dimension(:),allocatable,intent(in) :: chi, vel, emax
-real(4),intent(in) :: emin
-integer,dimension(:),allocatable,intent(in) :: loca
-! FILE-WIDE CHI DATA   (3D RECORD)
-real(4),dimension(:,:),allocatable,intent(in) :: chi_fw
-integer,dimension(:),allocatable,intent(in) :: isspec
-! ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
-character(8),dimension(:),allocatable,intent(in) :: habsid, hident, hmat
-real(4),dimension(:),allocatable,intent(in) :: amass, efiss, ecapt, temp, sigpot, adens
-integer,dimension(:),allocatable,intent(in) :: kbr,  ichi, ifis, ialf, inp, in2n, ind, int, ltot, ltrn, istrpd
-integer,dimension(:,:),allocatable,intent(in) :: idsct, lord
-integer,dimension(:,:,:),allocatable,intent(in) :: jband, ijj
-! PRINCIPAL CROSS SECTIONS   (5D RECORD)
-real(4),dimension(:,:,:),allocatable,intent(in) :: strpl, stotpl, strpd
-real(4),dimension(:,:),allocatable,intent(in) :: sngam, sfis, snutot, chiso, snalf, snp, sn2n, snd, snt
-! ISOTOPE CHI DATA (6D RECORD)
-real(4),dimension(:,:,:),allocatable,intent(in) :: chiiso
-integer,dimension(:,:),allocatable,intent(in) :: isopec
-! SCATTERING SUB-BLOCK   (7D RECORD)
-integer,intent(in) :: kmax
-real(4),dimension(:,:,:,:),allocatable,intent(in) :: scat
 
 iout = 21
 fname_out = 'ascii.out'
