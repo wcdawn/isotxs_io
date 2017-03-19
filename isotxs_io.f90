@@ -1,103 +1,31 @@
 program isotxsio
+use text_io
+use variables
 IMPLICIT NONE
 
 ! General control variables
-integer :: i, j, r, c
-integer :: ifl, iout, ios = 0
+integer :: i, j, k, r, c
+integer :: ifl, ios = 0
 integer :: ichiread, ifisread, ialfread, inpread, in2nread, indread, intread ! reading checks
-character(80) :: fname, fname_out
-logical :: lfixstr
-
-! FILE IDENTIFICATION
-character(8) :: hname
-character(8),dimension(2) :: huse
-integer :: ivers
-! FILE CONTROL   (1D RECORD)
-integer :: ngroup, niso, maxup, maxdn, maxord, ichist, nscmax, nsblok
-! FILE DATA   (2D RECORD)
-character(8),dimension(12) :: hsetid
-character(8),dimension(:),allocatable :: hisonm
-real(4),dimension(:),allocatable :: chi, vel, emax
-real(4) :: emin
-integer,dimension(:),allocatable :: loca
-! FILE-WIDE CHI DATA   (3D RECORD)
-real(4),dimension(:,:),allocatable :: chi_fw
-integer,dimension(:),allocatable :: isspec
-! ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
-character(8),dimension(:),allocatable :: habsid, hident, hmat
-real(4),dimension(:),allocatable :: amass, efiss, ecapt, temp, sigpot, adens
-integer,dimension(:),allocatable :: kbr,  ichi, ifis, ialf, inp, in2n, ind, int, ltot, ltrn, istrpd
-integer,dimension(:,:),allocatable :: idsct, lord
-integer,dimension(:,:,:),allocatable :: jband, ijj
-! PRINCIPAL CROSS SECTIONS   (5D RECORD)
-real(4),dimension(:,:,:),allocatable :: strpl, stotpl, strpd
-real(4),dimension(:,:),allocatable :: sngam, sfis, snutot, chiso, snalf, snp, sn2n, snd, snt
-! ISOTOPE CHI DATA (6D RECORD)
-real(4),dimension(:,:,:),allocatable :: chiiso
-integer,dimension(:,:),allocatable :: isopec
-! SCATTERING SUB-BLOCK   (7D RECORD)
-integer :: kmax
-real(4),dimension(:,:,:),allocatable :: scat
+character(80) :: fname
+logical :: lfixstr, lascii
 
 ! Formats
 ! CHARACTER
 101 format(a)  ! plain-text descriptor
-! INTEGER
-201 format(i6) ! integer*6
-! RECORDS
-900 format(/, 'FILE IDENTIFICATION', &
-           /, a,  ' HNAME         HOLLERITH FILE NAME - ISOTXS', &
-           /, a,  ' HUSE(1)       HOLLERITH USER IDENTIFICATION', &
-           /, a,  ' HUSE(2)       HOLLERITH USER IDENTIFICATION', &
-           /, i8, ' IVERS         FILE VERSION NUMBER')
-901 format(/, 'FILE CONTROL   (1D RECORD)', &
-           /, i6, ' NGROUP        NUMBER OF ENERGY GROUPS IN FILE', &
-           /, i6, ' NISO          NUMBER OF ISOTOPES IN FILE', &
-           /, i6, ' MAXUP         MAXIMUM NUMBER OF UPSCATTER GROUPS', &
-           /, i6, ' MAXDN         MAXIMUM NUMBER OF DOWNSCATTER GROUPS', &
-           /, i6, ' MAXORD        MAXIMUM SCATTERING ORDER', &
-           /, i6, ' ICHIST        FILE-WIDE FISSION SPECTRUM FLAG', &
-           /, i6, ' NSCMAX        MAXIMUM NUMBER OF BLOCKS OF SCATTERING DATA', &
-           /, i6, ' NSBLOK        SUBBLOCKING CONTROL FOR SCATTER MATRICES')
-902 format('ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)', &
-           /, a,     ' HABSID        HOLLERITH ABSOLUTE ISOTOPE LABEL', &
-           /, a,     ' HIDENT        IDENTIFIER OF LIBRARY FROM WHICH BASIC DATA CAME', &
-           /, a,     ' HMAT          ISOTOPE IDENTIFICATION', &
-           /, f6.2, ' AMASS         GRAM ATOMIC WEIGHT', &
-           /, e6.1, ' EFISS         TOTAL THERMAL ENERGY YIELD/FISSION (W.SEC/FISS)', &
-           /, e6.1, ' ECAPT         TOTAL THERMAL ENERGY YIELD/CAPTURE (W.SEC/CAPT)', &
-           /, e6.1, ' TEMP          ISOTOPE TEMPERATURE (DEGREES KELVIN)', &
-           /, e6.1, ' SIGPOT        AVERAGE EFFECTIVE POTENTIAL SCATTERING IN RESONANCE RANGE (BARNS/ATOM)', &
-           /, e6.1, ' ADENS         DENSITY OF ISOTOPE IN MIXTURE IN WHICH ISOTOPE CROSS SECTIONS WERE GENERATED (A/BARN-CM)', &
-           /, i6,    ' KBR           ISOTOPE CLASSIFICATION (SEE DOCUMENTATION)', &
-           /, i6,    ' ICHI          ISOTOPE FISSION SPECTRUM FLAG', &
-           /, i6,    ' IFIS          (N,F) CROSS SECTION FLAG ', &
-           /, i6,    ' IALF          (N,ALPHA) CROSS SECTION FLAG', &
-           /, i6,    ' INP           (N,P) CROSS SECTION FLAG', &
-           /, i6,    ' IN2N          (N,2N) CROSS SECTION FLAG', &
-           /, i6,    ' IND           (N,D) CROSS SECTION FLAG', &
-           /, i6,    ' INT           (N,T) CROSS SECTION FLAG', &
-           /, i6,    ' LTOT          NUMBER OF MOMENTS OF TOTAL CROSS SECTION PROVIDED', &
-           /, i6,    ' LTRN          NUMBER OF MOMENTS OF TRANSPORT CROSS SECTION', &
-           /, i6,    ' ISTRPD        NUMBER OF COORDINATE DIRECTIONS ... (MUST .EQ. 0)')
 ifl = 11
 ! fname = '16.4_Fuel.ISOTXS_complete'
 fname = 'ISOTXS.20'
-iout = 21
-fname_out = 'ascii.out'
 lfixstr = .false.
+lascii  = .true.
 
 !------------------------------------------------------------------------------!
 ! OPEN FILES
 !------------------------------------------------------------------------------!
 ! ISOTXS in
 ! default open with little_endian. May be closed and reopened later
-open(ifl, file = fname, status = 'old', form = 'unformatted', action = 'read', iostat = ios)
+open(ifl, file = fname, status = 'old', form = 'unformatted', action = 'read', convert = 'LITTLE_ENDIAN', iostat = ios)
 call checkopen(ifl,fname,ios)
-
-! ASCII out
-open(unit = iout, file = fname_out, status = 'replace', action = 'write', iostat = ios)
-call checkopen(iout,fname_out,ios)
 
 !------------------------------------------------------------------------------!
 ! READ FILE IDENTIFICATION
@@ -124,8 +52,6 @@ if (lfixstr) then
 	call fixstr(huse(2))
 endif
 
-write(iout,900) hname, (huse(i), i = 1,2), ivers
-
 ! make sure this is an ISOTXS file
 if (hname .ne. 'ISOTXS  ') then
 	write(*,101) 'FATAL -- invalid file name'
@@ -137,7 +63,6 @@ endif
 ! READ FILE CONTROL   (1D RECORD)
 !------------------------------------------------------------------------------!
 read(ifl,iostat = ios) ngroup, niso, maxup, maxdn, maxord, ichist, nscmax, nsblok
-write(iout,901) ngroup, niso, maxup, maxdn, maxord, ichist, nscmax, nsblok
 if (ios .ne. 0) then
 	write(*,101) 'FATAL -- error reading FILE CONTROL   (1D RECORD)'
 	write(*,'(a,i6)') 'return code = ', ios
@@ -145,62 +70,7 @@ if (ios .ne. 0) then
 endif
 
 write(*,101) 'allocating memory'
-! FILE DATA   (2D RECORD)
-allocate(hisonm(niso))
-if (ichist .eq. 1) then
-	allocate(chi(ngroup))
-endif
-allocate(vel(ngroup))
-allocate(emax(ngroup))
-allocate(loca(niso))
-! FILE-WIDE CHI DATA   (3D RECORD)
-if (ichist .gt. 1) then
-	allocate(chi_fw(ichist,ngroup))
-	allocate(isspec(ngroup))
-endif
-! ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
-allocate(habsid(niso))
-allocate(hident(niso))
-allocate(hmat(niso))
-allocate(amass(niso))
-allocate(efiss(niso))
-allocate(ecapt(niso))
-allocate(temp(niso))
-allocate(sigpot(niso))
-allocate(adens(niso))
-allocate(kbr(niso))
-allocate(ichi(niso))
-allocate(ifis(niso))
-allocate(ialf(niso))
-allocate(inp(niso))
-allocate(in2n(niso))
-allocate(ind(niso))
-allocate(int(niso))
-allocate(ltot(niso))
-allocate(ltrn(niso))
-allocate(istrpd(niso))
-allocate(idsct(niso,nscmax))
-allocate(lord(niso,nscmax))
-allocate(jband(niso,ngroup,nscmax))
-allocate(ijj(niso,ngroup,nscmax))
-! PRINCIPAL CROSS SECTIONS   (5D RECORD)
-allocate(strpl(niso,ngroup,nscmax))
-allocate(stotpl(niso,ngroup,nscmax))
-allocate(sngam(niso,ngroup))
-allocate(sfis(niso,ngroup))
-allocate(snutot(niso,ngroup))
-allocate(snalf(niso,ngroup))
-allocate(chiso(niso,ngroup))
-allocate(snp(niso,ngroup))
-allocate(sn2n(niso,ngroup))
-allocate(snd(niso,ngroup))
-allocate(snt(niso,ngroup))
-! ISOTOPE CHI DATA   (6D RECORD)
-allocate(chiiso(niso,ichist,ngroup))
-allocate(isopec(niso,ngroup))
-! SCATTERING SUB-BLOCK   (7D RECORD)
-! TO-DO : ADDRESS THE SIZE OF THIS
-allocate(scat(niso,ngroup * ngroup,3))
+call allocate_memory(niso,ngroup,nscmax,ichist)
 
 ! READ PRINCIPAL CROSS SECTIONS   (5D RECORD)
 ! TO-DO: Is this ever going to be important?
@@ -237,33 +107,6 @@ if (lfixstr) then
 	enddo
 endif
 
-write(iout,'(/,a)') 'FILE DATA   (2D RECORD)'
-write(iout,101) 'HSETID(I)     HOLLERITH IDENTIFICATION OF FILE'
-write(iout,'(12a)') (hsetid(i), i = 1,12) 
-write(iout,101) 'HISONM(I)     HOLLERITH ISOTOPE LABEL FOR ISOTOPE I'
-i = 0
-do r = 1,((niso / 5) + 1)
-	do c = 1,5
-		i = i + 1
-		if (i .gt. niso) exit
-		write(iout,'(i3,x,a,3x)',advance = 'no') i, hisonm(i)
-	enddo
-	write(iout,*)
-enddo
-if (ichist .eq. 1) then
-	write(iout,101) 'CHI(J)        FILE-WIDE FISSION SPECTRUM'
-	call write_fivetable_real(chi,ngroup,iout)
-endif
-write(iout,101) 'VEL(J)        MEAN NEUTRON VELOCITY IN GROUP J (CM/SEC)'
-call write_fivetable_real(vel,ngroup,iout)
-write(iout,101) 'EMAX(J)       MAXIMUM ENERGY BOUND OF GROUP J (EV)'
-call write_fivetable_real(emax,ngroup,iout)
-write(iout,101) 'EMIN          MINIMUM ENERGY BOUND OF SET (EV)'
-write(iout,'(e12.6)') emin
-write(iout,101) 'LOCA(I)       NUMBER OF RECORDS TO BE SKIPPED TO READ DATA FOR ISOTOPE I'
-call write_fivetable_int(loca,ngroup,iout)
-
-
 !------------------------------------------------------------------------------!
 ! READ FILE-WIDE CHI DATA   (3D RECORD)
 ! TO-DO: This is untested. No file from the test suite has this.
@@ -276,22 +119,7 @@ if (ichist .gt. 1) then
 		write(*,'(a,i6)') 'error code ', ios
 		stop
 	endif
-	write(iout,'(/,a)') 'FILE-WIDE CHI DATA   (3D RECORD)'
-	write(iout,101) 'CHI(K,J)      FRACTION OF NEUTRONS EMITTED INTO GROUP J AS A RESULT OF FISSION IN ANY GROUP,USING SPECTRUM K'
-	do i = 1,ichist
-		do j = 1,ngroup
-			write(iout,'(e12.6,3x)',advance = 'no') chi_fw(i,j)
-		enddo
-		write(iout,*)
-	enddo
-	write(iout,101) 'ISSPEC(I)     ISSPEC(I)=K IMPLIES THAT SPECTRUM K IS USED TO CALCULATE EMISSION SPECTRUM FROM FISSION IN GROUP I'
-	call write_fivetable_int(isspec,ngroup,iout)
 endif
-
-write(iout,101)
-write(iout,101) '********************************************************************************'
-write(iout,101) 'INDIVIDUAL ISOTOPIC DATA'
-write(iout,101) '********************************************************************************'
 
 ! *************(REPEAT FOR ALL ISOTOPES)                   
 ! *         ISOTOPE CONTROL AND GROUP                      
@@ -304,7 +132,6 @@ write(iout,101) '***************************************************************
 ! *  *  *   SCATTERING SUB-BLOCK               LORD(N).GT.0
 ! *************                                            
 do i = 1,niso
-	write(iout,'(/,a,i3)') 'ISOTOPE', i
 	!------------------------------------------------------------------------------!
 	! READ ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
 	!------------------------------------------------------------------------------!
@@ -333,11 +160,6 @@ do i = 1,niso
 		call fixstr(hident(i))
 		call fixstr(hmat(i))
 	endif
-	
-	write(iout,902) habsid(i), hident(i), hmat(i), amass(i), efiss(i), ecapt(i), temp(i), sigpot(i), adens(i), &
-	                kbr(i), ichi(i), ifis(i), ialf(i), inp(i), in2n(i), ind(i), int(i), ltot(i), ltrn(i), &
-	                istrpd(i)
-	
 	
 	!------------------------------------------------------------------------------!
 	! READ PRINCIPAL CROSS SECTIONS   (5D RECORD)
@@ -386,27 +208,37 @@ do i = 1,niso
 	!------------------------------------------------------------------------------!
 	do j = 1,nscmax
 		if (lord(i,j) .gt. 0) then
-			! CC    KMAX=SUM OVER J OF JBAND(J,N) WITHIN THE J-GROUP RANGE OF THIS   -
-			! CC       SUB-BLOCK.  IF M IS THE INDEX OF THE SUB-BLOCK, THE J-GROUP   -
-			! CC       RANGE CONTAINED WITHIN THIS SUB-BLOCK IS                      -
-			! CC       JL=(M-1)*((NGROUP-1)/NSBLOK+1)+1 TO JU=MIN0(NGROUP,JUP),      -
-			! CC       WHERE JUP=M*((NGROUP-1)/NSBLOK +1).                           -
-			! kmax = 0
-			! do k = 1,
-			read(ifl) !scat(i,1:kmax,1:lord(i,j))
+			kmax = 0
+			do k = 1,ngroup
+				kmax = kmax + jband(i,k,j)
+			enddo
+			read(ifl,iostat = ios) scat(i,j,1:kmax,1:lord(i,j))
+			if (ios .ne. 0) then
+				write(*,101) 'FATAL -- error reading 7D RECORD'
+				write(*,'(a,i3,x,a)') 'isotope ', i, habsid(i)
+				write(*,'(a,i3)') 'scattering matrix # ', j
+				write(*,'(a,i6)') 'error code ', ios
+				stop
+			endif
 		endif
-	enddo
-	
-	
-	
-	
-	
+	enddo	
 enddo
 
+if (lascii) then
+	write(*,101) 'writing ascii output'
+	call ascii_out(hname,huse,ivers, &
+                   ngroup,niso,maxup,maxdn,maxord,ichist,nscmax,nsblok, &
+                   hsetid,hisonm,chi,vel,emax,emin,loca, &
+                   chi_fw, isspec, &
+                   habsid,hident,hmat,amass,efiss,ecapt,temp,sigpot,adens,kbr,ichi,ifis,ialf,inp,in2n,ind,int,ltot,ltrn,istrpd, &
+                   idsct,lord,jband,ijj, &
+                   strpl,stotpl,strpd,sngam,sfis,snutot,chiso,snalf,snp,sn2n,snd,snt, &
+                   chiiso,isopec, &
+                   kmax,scat)
+endif
 
 close(ifl)
-contains
-
+endprogram isotxsio
 
 subroutine fixstr(str)
 IMPLICIT NONE
@@ -421,48 +253,3 @@ str(6:6)=str0(7:7)
 str(7:7)=str0(6:6) 
 str(8:8)=str0(5:5)
 endsubroutine fixstr
-
-subroutine checkopen(ifl,fname,ios)
-IMPLICIT NONE
-integer,intent(in) :: ifl, ios
-character(80),intent(in) :: fname
-if (ios .ne. 0) then
-	write(*,'(a,i2,a,a)') 'FATAL -- error opening unit -- ', ifl, ' -- ', fname
-	write(*,'(a,i3)') 'ios = ', ios
-	stop
-endif
-endsubroutine checkopen
-
-subroutine write_fivetable_real(var,length,iout)
-IMPLICIT NONE
-real(4),dimension(:),intent(in) :: var
-integer,intent(in) :: length, iout
-integer :: r, c, i
-i = 0
-do r = 1,((length / 5) + 1)
-	do c = 1,5
-		i = i + 1
-		if (i .gt. length) exit
-		write(iout,'(i3,x,e12.6,3x)',advance = 'no') i, var(i)
-	enddo
-write(iout,*)
-enddo
-endsubroutine write_fivetable_real
-
-subroutine write_fivetable_int(var,length,iout)
-IMPLICIT NONE
-integer,dimension(:),intent(in) :: var
-integer,intent(in) :: length, iout
-integer :: r, c, i
-i = 0
-do r = 1,((length / 5) + 1)
-	do c = 1,5
-		i = i + 1
-		if (i .gt. length) exit
-		write(iout,'(i3,x,i6,3x)',advance = 'no') i, var(i)
-	enddo
-write(iout,*)
-enddo
-endsubroutine write_fivetable_int
-
-endprogram isotxsio
