@@ -138,6 +138,8 @@ do i = 1,niso
 	xs(i)%sigd(:)     = snd(i,:)      * adens(i) * 1.0d24
 	xs(i)%sigt(:)     = snt(i,:)      * adens(i) * 1.0d24
 	
+	
+	
 	do j = 1,nscmax
 		
 	enddo

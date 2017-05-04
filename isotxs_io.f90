@@ -15,8 +15,8 @@ logical :: lfixstr, lascii
 ! CHARACTER
 101 format(a)  ! plain-text descriptor
 ifl = 11
-! fname = '16.4_Fuel.ISOTXS_complete'
-fname = 'ISOTXS.20'
+fname = '16.4_Fuel.ISOTXS_complete'
+! fname = 'ISOTXS.20'
 lfixstr = .false.
 lascii  = .false.
 
@@ -225,7 +225,7 @@ do i = 1,niso
 	enddo	
 enddo
 
-lascii = .false.
+lascii = .true.
 if (lascii) then
 	write(*,101) 'writing ascii output'
 	call ascii_out()

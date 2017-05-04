@@ -113,6 +113,7 @@ do i = 1,niso
 	write(iout,101) 'JBAND(J,N)    NUMBER OF GROUPS THAT SCATTER INTO GROUP J, INCLUDING SELF-SCATTER, IN SCATTERING BLOCK N'
 	call write_inttable(jband(i,:,:),ngroup,nscmax,iout)
 	write(iout,101) 'IJJ(J,N)      POSITION OF IN-GROUP SCATTERING CROSS SECTION IN SCATTERING DATA FOR GROUP J, SCATTERING BLOCK N'
+	call write_inttable(ijj(i,:,:),ngroup,nscmax,iout)
 	! PRINCIPAL CROSS SECTIONS   (5D RECORD)
 	write(iout,101) 'PRINCIPAL CROSS SECTIONS   (5D RECORD)'
 	write(iout,101) 'STRPL(J,L)    PL WEIGHTED TRANSPORT CROSS SECTION '
@@ -142,17 +143,6 @@ do i = 1,niso
 	enddo
 enddo
 	
-
-
-
-
-
-
-
-
-
-
-
 
 endsubroutine ascii_out
 
