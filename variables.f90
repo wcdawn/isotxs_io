@@ -31,7 +31,7 @@ integer :: kmax
 real(4),dimension(:,:,:,:),allocatable :: scat
 ! xs_structure
 type xs_library
-	real(8),allocatable,dimension(:,:) :: sigtr, sigtot
+	real(8),allocatable,dimension(:,:) :: sigtr, sigtot, scat, n2n
 	real(8),allocatable,dimension(:) :: signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
 endtype
 type(xs_library),allocatable,dimension(:) :: xs
@@ -101,7 +101,8 @@ endsubroutine allocate_memory
 
 subroutine xs_structure
 IMPLICIT NONE
-integer :: i,j
+integer :: i,j,k
+integer :: point, group_offset, group_start, group_end
 
 allocate(xs(niso))
 do i = 1,niso
@@ -116,6 +117,8 @@ do i = 1,niso
 	allocate(xs(i)%sign2n(ngroup))
 	allocate(xs(i)%sigd(ngroup))
 	allocate(xs(i)%sigt(ngroup))
+	allocate(xs(i)%scat(ngroup,ngroup))
+	allocate(xs(i)%n2n(ngroup,ngroup))
 enddo
 
 do i = 1,niso
@@ -138,10 +141,48 @@ do i = 1,niso
 	xs(i)%sigd(:)     = snd(i,:)      * adens(i) * 1.0d24
 	xs(i)%sigt(:)     = snt(i,:)      * adens(i) * 1.0d24
 	
-	
+	xs(i)%scat(:,:) = 0.0d0
+	xs(i)%n2n(:,:)  = 0.0d0
 	
 	do j = 1,nscmax
-		
+		point = 0
+		do k = 1,ngroup
+			group_offset = ijj(i,k,j) - 1
+			group_end    = k - group_offset
+			group_start  = group_end - jband(i,k,j) + 1
+			if (idsct(i,j) .ge. 300) then
+				! n2n
+				if ((idsct(i,j) - 300 .ne. 0)) then
+					point = point + jband(i,k,j)
+					cycle
+				endif
+				! write(*,*) group_start, group_end, (group_end - group_start)
+				! write(*,*) point + 1, point + jband(i,k,j), ((point + jband(i,k,j)) - (point + 1))
+				xs(i)%n2n(k,group_start:group_end) = scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
+			elseif (idsct(i,j) .ge. 200) then
+				! inelastic
+				if ((idsct(i,j) - 200 .ne. 0)) then
+					point = point + jband(i,k,j)
+					cycle
+				endif
+				xs(i)%scat(k,group_start:group_end) = xs(i)%scat(k,group_start:group_end) + &
+				scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
+			elseif (idsct(i,j) .ge. 100) then
+				! elastic
+				if ((idsct(i,j) - 100 .ne. 0)) then
+					point = point + jband(i,k,j)
+					cycle
+				endif
+				xs(i)%scat(k,group_start:group_end) = xs(i)%scat(k,group_start:group_end) + &
+				scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
+			else
+				! write(*,'(a)') 'FATAL -- unsupported idsct value'
+				! write(*,'(a,i3)') 'isotope', i
+				! write(*,'(a,i3)') 'idsct', idsct(i,j)
+				! stop
+			endif
+			point = point + jband(i,k,j)
+		enddo
 	enddo
 enddo
 
