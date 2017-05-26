@@ -16,9 +16,10 @@ logical :: lfixstr, lascii
 101 format(a)  ! plain-text descriptor
 ifl = 11
 ! fname = '16.4_Fuel.ISOTXS_complete'
-fname = 'ISOTXS.20'
+! fname = 'ISOTXS.20'
+! fname = 'ISOTXS.soft_fuel'
+fname = 'ISOTXS.u235'
 lfixstr = .false.
-lascii  = .false.
 
 !------------------------------------------------------------------------------!
 ! OPEN FILES
@@ -243,12 +244,12 @@ subroutine fixstr(str)
 IMPLICIT NONE
 character(8) :: str, str0
 str0=str
-str(1:1)=str0(4:4) 
-str(2:2)=str0(3:3) 
-str(3:3)=str0(2:2) 
-str(4:4)=str0(1:1) 
-str(5:5)=str0(8:8) 
-str(6:6)=str0(7:7) 
-str(7:7)=str0(6:6) 
+str(1:1)=str0(4:4)
+str(2:2)=str0(3:3)
+str(3:3)=str0(2:2)
+str(4:4)=str0(1:1)
+str(5:5)=str0(8:8)
+str(6:6)=str0(7:7)
+str(7:7)=str0(6:6)
 str(8:8)=str0(5:5)
 endsubroutine fixstr

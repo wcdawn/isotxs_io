@@ -78,7 +78,7 @@ call write_fivetable_real(emax,ngroup,iout)
 write(iout,101) 'EMIN          MINIMUM ENERGY BOUND OF SET (EV)'
 write(iout,'(e12.6)') emin
 write(iout,101) 'LOCA(I)       NUMBER OF RECORDS TO BE SKIPPED TO READ DATA FOR ISOTOPE I'
-call write_fivetable_int(loca,ngroup,iout)
+call write_fivetable_int(loca,niso,iout)
 ! FILE-WIDE CHI DATA   (3D RECORD)
 if (ichist .gt. 1) then
 	write(iout,'(/,a)') 'FILE-WIDE CHI DATA   (3D RECORD)'

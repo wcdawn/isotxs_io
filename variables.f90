@@ -32,7 +32,7 @@ real(4),dimension(:,:,:,:),allocatable :: scat
 ! xs_structure
 type xs_library
 	real(8),allocatable,dimension(:,:) :: sigtr, sigtot, scat, n2n
-	real(8),allocatable,dimension(:) :: signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
+	real(8),allocatable,dimension(:) :: sigtotp0, signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
 endtype
 type(xs_library),allocatable,dimension(:) :: xs
 
@@ -108,6 +108,7 @@ allocate(xs(niso))
 do i = 1,niso
 	allocate(xs(i)%sigtr(ngroup,nscmax))
 	allocate(xs(i)%sigtot(ngroup,nscmax))
+	allocate(xs(i)%sigtotp0(ngroup))
 	allocate(xs(i)%signg(ngroup))
 	allocate(xs(i)%sigf(ngroup))
 	allocate(xs(i)%nuf(ngroup))
@@ -129,17 +130,18 @@ do i = 1,niso
 		write(*,'(a,e12.6)') 'adens ', adens(i)
 	endif
 	
-	xs(i)%sigtr(:,:)  = strpl(i,:,:)  * adens(i) * 1.0d24
-	xs(i)%sigtot(:,:) = stotpl(i,:,:) * adens(i) * 1.0d24
-	xs(i)%signg(:)    = sngam(i,:)    * adens(i) * 1.0d24
-	xs(i)%sigf(:)     = sfis(i,:)     * adens(i) * 1.0d24
-	xs(i)%nuf(:)      = snutot(i,:)
-	xs(i)%chi(:)      = chiso(i,:)    
-	xs(i)%sigalf(:)   = snalf(i,:)    * adens(i) * 1.0d24
-	xs(i)%sigp(:)     = snp(i,:)      * adens(i) * 1.0d24
-	xs(i)%sign2n(:)   = sn2n(i,:)     * adens(i) * 1.0d24
-	xs(i)%sigd(:)     = snd(i,:)      * adens(i) * 1.0d24
-	xs(i)%sigt(:)     = snt(i,:)      * adens(i) * 1.0d24
+	xs(i)%sigtr(:,:)  = strpl(i,:,:)  * adens(i)
+	xs(i)%sigtot(:,:) = stotpl(i,:,:) * adens(i)
+	xs(i)%sigtotp0(:) = stotpl(i,:,1) * adens(i)
+	xs(i)%signg(:)    = sngam(i,:)    * adens(i)
+	xs(i)%sigf(:)     = sfis(i,:)     * adens(i)
+	xs(i)%nuf(:)      = snutot(i,:)             
+	xs(i)%chi(:)      = chiso(i,:)              
+	xs(i)%sigalf(:)   = snalf(i,:)    * adens(i)
+	xs(i)%sigp(:)     = snp(i,:)      * adens(i)
+	xs(i)%sign2n(:)   = sn2n(i,:)     * adens(i)
+	xs(i)%sigd(:)     = snd(i,:)      * adens(i)
+	xs(i)%sigt(:)     = snt(i,:)      * adens(i)
 	
 	xs(i)%scat(:,:) = 0.0d0
 	xs(i)%n2n(:,:)  = 0.0d0
@@ -183,6 +185,10 @@ do i = 1,niso
 			endif
 			point = point + jband(i,k,j)
 		enddo
+	enddo
+	write(20,*)
+	do j = 1,ngroup
+		write(20,'(2e13.6)') xs(i)%scat(:,j)
 	enddo
 enddo
 

@@ -19,7 +19,7 @@ real(8),allocatable,dimension(:)   :: phi, phi_old, source, xs_total, chi_tilde
 real(8),allocatable,dimension(:,:) :: scatter, n2n
 real(8) :: k, tol, converge, scat_sum, fiss_sum, scat_source_sum, lambda, lambda_old, numerator, denominator
 real(8) :: chi_top, chi_bot
-real(8) :: chi_tilde_sum
+real(8) :: chi_tilde_sum, iso_fiss_sum
 
 allocate(signg(ngroup))
 allocate(nusigf(ngroup))
@@ -46,66 +46,78 @@ sigp   = 0.0d0
 sign2n = 0.0d0
 sigd   = 0.0d0
 sigt   = 0.0d0
-do j = 1,ngroup
+do g = 1,ngroup
 	do i = 1,niso
-		signg(j)  = signg(j)  + xs(i)%signg(j)
-		nusigf(j) = nusigf(j) + (xs(i)%sigf(j) * xs(i)%nuf(j))
-		sigalf(j) = sigalf(j) + xs(i)%sigalf(j)
-		sigp(j)   = sigp(j)   + xs(i)%sigp(j)
-		sign2n(j) = sign2n(j) + xs(i)%sign2n(j)
-		sigd(j)   = sigd(j)   + xs(i)%sigd(j)
-		sigt(j)   = sigt(j)   + xs(i)%sigt(j)
-		scatter(j,:) = scatter(j,:) + xs(i)%scat(j,:)
-		n2n(j,:) = n2n(j,:) + xs(i)%n2n(j,:)
+		signg(g)  = signg(g)  + xs(i)%signg(g)
+		nusigf(g) = nusigf(g) + (xs(i)%sigf(g) * xs(i)%nuf(g))
+		sigalf(g) = sigalf(g) + xs(i)%sigalf(g)
+		sigp(g)   = sigp(g)   + xs(i)%sigp(g)
+		sign2n(g) = sign2n(g) + xs(i)%sign2n(g)
+		sigd(g)   = sigd(g)   + xs(i)%sigd(g)
+		sigt(g)   = sigt(g)   + xs(i)%sigt(g)
+		scatter(g,:) = scatter(g,:) + xs(i)%scat(g,:)
+		n2n(g,:) = n2n(g,:) + xs(i)%n2n(g,:)
 	enddo
 enddo
 ! iterate
 ! intialize
-do j = 1,ngroup
+do g = 1,ngroup
 	scat_sum = 0.0d0
-	do g = 1,ngroup
-		scat_sum = scat_sum + scatter(g,j)
+	do gprime = 1,ngroup
+		scat_sum = scat_sum + scatter(gprime,g)
 	enddo
-	xs_total(j) = signg(j) + sigalf(j) + sigp(j) + sign2n(j) + scat_sum
+	xs_total(g) = signg(g) + sign2n(g) + scat_sum  + sigalf(g) + sigp(g)
 enddo
 phi = 1.0d0
 phi_old = phi
 k   = 1.0d0
 lambda = 1.0d0
+lambda_old = lambda
 iteration = 0
 tol = 1.0d-5
 converge = 1.0d0
 do while (converge .gt. tol)
 	phi_old = phi
+	lambda_old = lambda
+	
+	
+	
+	chi_bot = 0.0d0
+	do gprime = 1,ngroup
+		chi_bot = chi_bot + nusigf(gprime) * phi(gprime)
+	enddo
+	
+	
+	
 	do g = 1,ngroup
 		fiss_sum = 0.0d0
 		do gprime = 1,ngroup
-			fiss_sum = fiss_sum + nusigf(gprime) * phi(gprime)
+			fiss_sum = fiss_sum + nusigf(gprime) * phi_old(gprime)
 		enddo
 		scat_source_sum = 0.0d0
 		do gprime = 1,ngroup
 			scat_source_sum = scat_source_sum + (2.0d0 * n2n(g,gprime) + scatter(g,gprime)) * phi(gprime)
 		enddo
+		
+		
+		
 		chi_top = 0.0d0
-		chi_bot = 0.0d0
 		do i = 1,niso
-			chi_top = chi_top + xs(i)%chi(g) * xs(i)%nuf(g) * xs(i)%sigf(g) * phi(g)
+			iso_fiss_sum = 0.0d0
+			do gprime = 1,ngroup
+				iso_fiss_sum = iso_fiss_sum + xs(i)%nuf(gprime) * xs(i)%sigf(gprime) * phi(gprime)
+			enddo
+			chi_top = chi_top + iso_fiss_sum * xs(i)%chi(g)
 		enddo
-		chi_bot = nusigf(g) * phi(g)
 		chi_tilde(g) = chi_top / chi_bot
-		chi_tilde_sum = 0.0d0
-		do gprime = 1,ngroup
-			chi_tilde_sum = chi_tilde_sum + chi_tilde(gprime)
-		enddo
-		! write(*,'(a,f12.10)') 'chi_tilde_sum = ', chi_tilde_sum
-		do gprime = 1,ngroup
-			chi_tilde(gprime) = chi_tilde(gprime) / chi_tilde_sum
-		enddo
-		chi_tilde_sum = 0.0d0
-		do gprime = 1,ngroup
-			chi_tilde_sum = chi_tilde_sum + chi_tilde(gprime)
-		enddo
-		write(*,'(a,f12.10)') 'chi_tilde_sum = ', chi_tilde_sum
+		chi_tilde(g) = xs(1)%chi(g)
+	enddo
+	chi_tilde_sum = vector_sum(chi_tilde,ngroup)
+	
+	
+	
+	
+	do g = 1,ngroup
 		source(g) = (chi_tilde(g) / lambda) * fiss_sum + scat_source_sum
 		phi(g) = source(g) / xs_total(g)
 	enddo
@@ -115,19 +127,32 @@ do while (converge .gt. tol)
 		numerator = numerator + nusigf(gprime) * phi(gprime)
 		denominator = denominator + nusigf(gprime) * phi_old(gprime)
 	enddo
-	write(20,*) numerator, denominator
-	lambda_old = lambda
-	lambda = lambda * (numerator / denominator)
+	lambda = lambda_old * (numerator / denominator)
 	iteration = iteration + 1
-	write(*,*) iteration, lambda
-	! converge = 1.0d-10
+	write(*,*) iteration, lambda, chi_tilde_sum
 	converge = abs(lambda - lambda_old) / lambda
 	if (iteration .eq. 101) stop
 enddo
 write(*,'(a,i3)') 'iteration ', iteration
 write(*,'(a,f12.10)') 'k ', k
 write(*,'(a,f12.10)') 'lambda ', lambda
+write(*,'(a)') '---PHI---'
+do g = 1,ngroup
+	write(*,'(i3,x,e12.6)') g, phi(g)
+enddo
 
 endsubroutine spectrum_solve
+
+function vector_sum(var,length)
+IMPLICIT NONE
+	real(8) :: vector_sum
+	real(8),dimension(:),allocatable,intent(in) :: var
+	integer,intent(in) :: length
+	integer :: i
+	vector_sum = 0.0d0
+	do i = 1,length
+		vector_sum = vector_sum + var(i)
+	enddo
+endfunction vector_sum
 
 endmodule spectrum_calc
