@@ -19,6 +19,7 @@ real(8),allocatable,dimension(:)   :: phi, phi_old, source, xs_total, chi_tilde
 real(8),allocatable,dimension(:,:) :: scatter, n2n
 real(8) :: k, tol, converge, scat_sum, fiss_sum, scat_source_sum, lambda, lambda_old, numerator, denominator
 real(8) :: chi_top, chi_bot
+real(8) :: chi_tilde_sum
 
 allocate(signg(ngroup))
 allocate(nusigf(ngroup))
@@ -92,6 +93,19 @@ do while (converge .gt. tol)
 		enddo
 		chi_bot = nusigf(g) * phi(g)
 		chi_tilde(g) = chi_top / chi_bot
+		chi_tilde_sum = 0.0d0
+		do gprime = 1,ngroup
+			chi_tilde_sum = chi_tilde_sum + chi_tilde(gprime)
+		enddo
+		! write(*,'(a,f12.10)') 'chi_tilde_sum = ', chi_tilde_sum
+		do gprime = 1,ngroup
+			chi_tilde(gprime) = chi_tilde(gprime) / chi_tilde_sum
+		enddo
+		chi_tilde_sum = 0.0d0
+		do gprime = 1,ngroup
+			chi_tilde_sum = chi_tilde_sum + chi_tilde(gprime)
+		enddo
+		write(*,'(a,f12.10)') 'chi_tilde_sum = ', chi_tilde_sum
 		source(g) = (chi_tilde(g) / lambda) * fiss_sum + scat_source_sum
 		phi(g) = source(g) / xs_total(g)
 	enddo
