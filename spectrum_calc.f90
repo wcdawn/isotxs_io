@@ -14,7 +14,7 @@ IMPLICIT NONE
 integer :: i, j, g, gprime
 integer :: iteration
 ! real(8),allocatable,dimension(:,:) :: sigtr, sigtot
-real(8),allocatable,dimension(:)   :: signg, nusigf, chi, sigalf, sigp, sign2n, sigd, sigt
+real(8),allocatable,dimension(:)   :: signg, nusigf, sigf, chi, sigalf, sigp, sign2n, sigd, sigt
 real(8),allocatable,dimension(:)   :: phi, phi_old, source, xs_total, chi_tilde
 real(8),allocatable,dimension(:,:) :: scatter, n2n
 real(8) :: k, tol, converge, scat_sum, fiss_sum, scat_source_sum, lambda, lambda_old, numerator, denominator
@@ -23,6 +23,7 @@ real(8) :: chi_tilde_sum, iso_fiss_sum
 
 allocate(signg(ngroup))
 allocate(nusigf(ngroup))
+allocate(sigf(ngroup))
 allocate(sigalf(ngroup))
 allocate(sigp(ngroup))
 allocate(sign2n(ngroup))
@@ -41,6 +42,7 @@ allocate(chi_tilde(ngroup))
 ! sigtot = 0.0d0
 signg  = 0.0d0
 nusigf = 0.0d0
+sigf   = 0.0d0
 sigalf = 0.0d0
 sigp   = 0.0d0
 sign2n = 0.0d0
@@ -50,6 +52,7 @@ do g = 1,ngroup
 	do i = 1,niso
 		signg(g)  = signg(g)  + xs(i)%signg(g)
 		nusigf(g) = nusigf(g) + (xs(i)%sigf(g) * xs(i)%nuf(g))
+		sigf(g)   = sigf(g)   + xs(i)%sigf(g)
 		sigalf(g) = sigalf(g) + xs(i)%sigalf(g)
 		sigp(g)   = sigp(g)   + xs(i)%sigp(g)
 		sign2n(g) = sign2n(g) + xs(i)%sign2n(g)
@@ -65,7 +68,20 @@ enddo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 do g = 1,ngroup
 	write(10,'(a,i3)') 'group ', g
-	write(10,'(a,e12.6)') 'absorption cross section = ', signg(g) + sigalf(g) + sigp(g) + sign2n(g)
+	write(10,'(a,es12.6)') 'absorption cross section = ', signg(g) + sigalf(g) + sigp(g) + sigf(g)
+	scat_sum = 0.0d0
+	do gprime = 1,ngroup
+		scat_sum = scat_sum + scatter(g,gprime)
+	enddo
+	write(10,'(a,es12.6)') 'removal cross section    = ', signg(g) + sigalf(g) + sigp(g) + sigf(g) + scat_sum
+	write(10,'(a)') 'scattering table'
+	do i = 1,ngroup
+		do j = 1,ngroup
+			write(10,'(es12.6,x)',advance = 'no') scatter(i,j)
+		enddo
+		write(10,*)
+	enddo
+	write(10,*)
 enddo
 
 
@@ -77,7 +93,7 @@ do g = 1,ngroup
 	do gprime = 1,ngroup
 		scat_sum = scat_sum + scatter(gprime,g)
 	enddo
-	xs_total(g) = signg(g) + sign2n(g) + scat_sum  + sigalf(g) + sigp(g)
+	xs_total(g) = signg(g) + sigalf(g) + sigp(g) + sigf(g) + sign2n(g) + scat_sum
 enddo
 phi = 1.0d0
 phi_old = phi
