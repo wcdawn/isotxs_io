@@ -59,6 +59,17 @@ do g = 1,ngroup
 		n2n(g,:) = n2n(g,:) + xs(i)%n2n(g,:)
 	enddo
 enddo
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! debug edits
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+do g = 1,ngroup
+	write(10,'(a,i3)') 'group ', g
+	write(10,'(a,e12.6)') 'absorption cross section = ', signg(g) + sigalf(g) + sigp(g) + sign2n(g)
+enddo
+
+
+
 ! iterate
 ! intialize
 do g = 1,ngroup
