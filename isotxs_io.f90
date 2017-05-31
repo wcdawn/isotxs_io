@@ -2,14 +2,15 @@ program isotxsio
 use text_io
 use variables
 use spectrum_calc
+use mpact_interface
 IMPLICIT NONE
 
 ! General control variables
 integer :: i, j, k, r, c
-integer :: ifl, ios = 0
+integer :: ifl, ios = 0, mpact_iout
 integer :: ichiread, ifisread, ialfread, inpread, in2nread, indread, intread ! reading checks
-character(80) :: fname
-logical :: lfixstr, lascii
+character(80) :: fname, mpact_fname, mpact_library_name
+logical :: lfixstr, lascii, lspectrum, lmpact
 
 ! Formats
 ! CHARACTER
@@ -19,7 +20,10 @@ ifl = 11
 ! fname = 'ISOTXS.20'
 ! fname = 'ISOTXS.soft_fuel'
 fname = 'ISOTXS.u235'
-lfixstr = .false.
+lfixstr   = .false.
+lascii    = .false.
+lspectrum = .false.
+lmpact    = .true.
 
 !------------------------------------------------------------------------------!
 ! OPEN FILES
@@ -233,7 +237,6 @@ do i = 1,niso
 	enddo	
 enddo
 
-lascii = .true.
 if (lascii) then
 	write(*,101) 'writing ascii output'
 	call ascii_out()
@@ -241,8 +244,19 @@ endif
 
 write(*,101) 'building xs structure'
 call xs_structure()
-write(*,101) 'spectral calc'
-call spectrum_solve()
+
+if (lspectrum) then
+	write(*,101) 'spectral calc'
+	call spectrum_solve()
+endif
+
+if (lmpact) then
+	write(*,101) 'writing to MPACT user format'
+	mpact_fname = 'u235.xsl'
+	mpact_library_name = 'u235 test format output'
+	mpact_iout = 22
+	call mpact_format(mpact_iout,mpact_fname,mpact_library_name)
+endif
 
 close(ifl)
 endprogram isotxsio

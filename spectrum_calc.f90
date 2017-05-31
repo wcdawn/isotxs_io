@@ -62,7 +62,7 @@ do g = 1,ngroup
 	do gprime = 1,ngroup
 		scat_sum = scat_sum + scatter(g,gprime)
 	enddo
-	xs_total(g) = signg(g) + sigalf(g) + sigp(g) + sigf(g) + scat_sum + sign2n(g)
+	xs_total(g) = signg(g) + sigalf(g) + sigp(g) + sigf(g) + scat_sum + sign2n(g) + sigd(g) + sigt(g)
 enddo
 phi = 1.0d0
 lambda = 1.0d0

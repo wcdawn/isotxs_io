@@ -31,8 +31,9 @@ integer :: kmax
 real(4),dimension(:,:,:,:),allocatable :: scat
 ! xs_structure
 type xs_library
+	real(8) :: kappa
 	real(8),allocatable,dimension(:,:) :: sigtr, sigtot, scat, n2n
-	real(8),allocatable,dimension(:) :: p0trans, p0tot, p1tot, signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
+	real(8),allocatable,dimension(:) :: p0trans, p0tot, p1tot, signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt, sigabs
 endtype
 type(xs_library),allocatable,dimension(:) :: xs
 
@@ -119,6 +120,7 @@ do i = 1,niso
 	allocate(xs(i)%sign2n(ngroup))
 	allocate(xs(i)%sigd(ngroup))
 	allocate(xs(i)%sigt(ngroup))
+	allocate(xs(i)%sigabs(ngroup))
 	allocate(xs(i)%scat(ngroup,ngroup))
 	allocate(xs(i)%n2n(ngroup,ngroup))
 enddo
@@ -131,8 +133,10 @@ do i = 1,niso
 		write(*,'(a,e12.6)') 'adens ', adens(i)
 	endif
 	
-	xs(i)%p0trans(:) = strpl(i,:,1)  * adens(i)
-	xs(i)%p0tot(:)   = stotpl(i,:,1) * adens(i)
+	xs(i)%kappa = efiss(i)
+	
+	xs(i)%p0trans(:)   = strpl(i,:,1)  * adens(i)
+	xs(i)%p0tot(:)     = stotpl(i,:,1) * adens(i)
 	xs(i)%p1tot(:)     = stotpl(i,:,2) * adens(i)
 	xs(i)%signg(:)     = sngam(i,:)    * adens(i)
 	xs(i)%sigf(:)      = sfis(i,:)     * adens(i)
@@ -143,6 +147,8 @@ do i = 1,niso
 	xs(i)%sign2n(:)    = sn2n(i,:)     * adens(i)
 	xs(i)%sigd(:)      = snd(i,:)      * adens(i)
 	xs(i)%sigt(:)      = snt(i,:)      * adens(i)
+	xs(i)%sigabs(:)    = xs(i)%signg(:) + xs(i)%sigalf(:) + xs(i)%sigp(:) + xs(i)%sigf(:) + xs(i)%sign2n(:) + xs(i)%sigd(:) + &
+	                     xs(i)%sigt(:)
 	
 	xs(i)%scat(:,:) = 0.0d0
 	xs(i)%n2n(:,:)  = 0.0d0
