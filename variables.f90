@@ -32,7 +32,7 @@ real(4),dimension(:,:,:,:),allocatable :: scat
 ! xs_structure
 type xs_library
 	real(8),allocatable,dimension(:,:) :: sigtr, sigtot, scat, n2n
-	real(8),allocatable,dimension(:) :: sigtotp0, signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
+	real(8),allocatable,dimension(:) :: p0trans, p0tot, p1tot, signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt
 endtype
 type(xs_library),allocatable,dimension(:) :: xs
 
@@ -101,15 +101,15 @@ endsubroutine allocate_memory
 
 subroutine xs_structure
 IMPLICIT NONE
-integer :: i,j,k
+integer :: i,j,k,g
 integer :: point, group_offset, group_start, group_end
 integer :: jup, jdn
 
 allocate(xs(niso))
 do i = 1,niso
-	allocate(xs(i)%sigtr(ngroup,nscmax))
-	allocate(xs(i)%sigtot(ngroup,nscmax))
-	allocate(xs(i)%sigtotp0(ngroup))
+	allocate(xs(i)%p0trans(ngroup))
+	allocate(xs(i)%p0tot(ngroup))
+	allocate(xs(i)%p1tot(ngroup))
 	allocate(xs(i)%signg(ngroup))
 	allocate(xs(i)%sigf(ngroup))
 	allocate(xs(i)%nuf(ngroup))
@@ -131,18 +131,18 @@ do i = 1,niso
 		write(*,'(a,e12.6)') 'adens ', adens(i)
 	endif
 	
-	xs(i)%sigtr(:,:)  = strpl(i,:,:)  * adens(i)
-	xs(i)%sigtot(:,:) = stotpl(i,:,:) * adens(i)
-	xs(i)%sigtotp0(:) = stotpl(i,:,1) * adens(i)
-	xs(i)%signg(:)    = sngam(i,:)    * adens(i)
-	xs(i)%sigf(:)     = sfis(i,:)     * adens(i)
-	xs(i)%nuf(:)      = snutot(i,:)             
-	xs(i)%chi(:)      = chiso(i,:)              
-	xs(i)%sigalf(:)   = snalf(i,:)    * adens(i)
-	xs(i)%sigp(:)     = snp(i,:)      * adens(i)
-	xs(i)%sign2n(:)   = sn2n(i,:)     * adens(i)
-	xs(i)%sigd(:)     = snd(i,:)      * adens(i)
-	xs(i)%sigt(:)     = snt(i,:)      * adens(i)
+	xs(i)%p0trans(:) = strpl(i,:,1)  * adens(i)
+	xs(i)%p0tot(:)   = stotpl(i,:,1) * adens(i)
+	xs(i)%p1tot(:)     = stotpl(i,:,2) * adens(i)
+	xs(i)%signg(:)     = sngam(i,:)    * adens(i)
+	xs(i)%sigf(:)      = sfis(i,:)     * adens(i)
+	xs(i)%nuf(:)       = snutot(i,:)             
+	xs(i)%chi(:)       = chiso(i,:)              
+	xs(i)%sigalf(:)    = snalf(i,:)    * adens(i)
+	xs(i)%sigp(:)      = snp(i,:)      * adens(i)
+	xs(i)%sign2n(:)    = sn2n(i,:)     * adens(i)
+	xs(i)%sigd(:)      = snd(i,:)      * adens(i)
+	xs(i)%sigt(:)      = snt(i,:)      * adens(i)
 	
 	xs(i)%scat(:,:) = 0.0d0
 	xs(i)%n2n(:,:)  = 0.0d0
@@ -150,28 +150,36 @@ do i = 1,niso
 	do j = 1,nscmax
 		point = 0
 		do k = 1,ngroup
-			jup = ijj(i,k,j) - 1
-			jdn = jband(i,k,j) - ijj(i,k,j)
-			group_start = k - jdn
-			group_end   = k + jup
-			write(*,'(8a)') ' jup', ' jdn', ' str', ' end', ' ijj', ' jbd', ' pnt', ' ptj'
-			write(*,'(8i4)') jup, jdn, group_start, group_end, ijj(i,k,j), jband(i,k,j), point, point + jband(i,k,j)
 			if (idsct(i,j) .ge. 300) then
 				! n2n
 				if ((idsct(i,j) - 300 .eq. 0)) then
-					xs(i)%n2n(group_start:group_end,k) = scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
+					! xs(i)%n2n(group_start:group_end,k) = scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
+					do g = jband(i,k,j),1,-1
+						xs(i)%n2n(g,k) = scat(i,j,point + 1,lord(i,j))
+						point = point + 1
+					enddo
+				else
+					point = point + jband(i,k,j)
 				endif
 			elseif (idsct(i,j) .ge. 200) then
 				! inelastic
 				if ((idsct(i,j) - 200 .eq. 0)) then
-					xs(i)%scat(group_start:group_end,k) = xs(i)%scat(group_start:group_end,k) + &
-					scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
+					do g = jband(i,k,j),1,-1
+						xs(i)%scat(g,k) = xs(i)%scat(g,k) + scat(i,j,point + 1,lord(i,j))
+						point = point + 1
+					enddo
+				else
+					point = point + jband(i,k,j)
 				endif
 			elseif (idsct(i,j) .ge. 100) then
 				! elastic
 				if ((idsct(i,j) - 100 .eq. 0)) then
-					xs(i)%scat(group_start:group_end,k) = xs(i)%scat(group_start:group_end,k) + &
-					scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
+					do g = jband(i,k,j),1,-1
+						xs(i)%scat(g,k) = xs(i)%scat(g,k) + scat(i,j,point + 1,lord(i,j))
+						point = point + 1
+					enddo
+				else
+					point = point + jband(i,k,j)
 				endif
 			else
 				! write(*,'(a)') 'FATAL -- unsupported idsct value'
@@ -179,13 +187,8 @@ do i = 1,niso
 				! write(*,'(a,i3)') 'idsct', idsct(i,j)
 				! stop
 			endif
-			point = point + jband(i,k,j)
 		enddo
-	enddo
-	write(20,*)
-	do j = 1,ngroup
-		write(20,'(2e13.6)') xs(i)%scat(:,j)
-	enddo
+	enddo	
 enddo
 
 endsubroutine xs_structure

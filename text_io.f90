@@ -4,9 +4,10 @@ contains
 
 subroutine ascii_out
 IMPLICIT NONE
-integer :: i, j, k, iout, ios = 0
-integer :: scat_point
+integer :: i, j, k, iout, ios = 0, g
+integer :: scat_point, jup, jdn
 character(80) :: fname_out
+real(4),dimension(ngroup,ngroup) :: scat_temp
 
 iout = 21
 fname_out = 'ascii.out'
@@ -59,8 +60,10 @@ call checkopen(iout,fname_out,ios)
 
 ! FILE IDENTIFICATION
 write(iout,900) hname, huse(1:2), ivers
+
 ! FILE CONTROL   (1D RECORD)
 write(iout,901) ngroup, niso, maxup, maxdn, maxord, ichist, nscmax, nsblok
+
 ! FILE DATA   (2D RECORD)
 write(iout,'(/,a)') 'FILE DATA   (2D RECORD)'
 write(iout,101) 'HSETID(I)     HOLLERITH IDENTIFICATION OF FILE'
@@ -79,6 +82,7 @@ write(iout,101) 'EMIN          MINIMUM ENERGY BOUND OF SET (EV)'
 write(iout,'(e12.6)') emin
 write(iout,101) 'LOCA(I)       NUMBER OF RECORDS TO BE SKIPPED TO READ DATA FOR ISOTOPE I'
 call write_fivetable_int(loca,niso,iout)
+
 ! FILE-WIDE CHI DATA   (3D RECORD)
 if (ichist .gt. 1) then
 	write(iout,'(/,a)') 'FILE-WIDE CHI DATA   (3D RECORD)'
@@ -114,6 +118,7 @@ do i = 1,niso
 	call write_inttable(jband(i,:,:),ngroup,nscmax,iout)
 	write(iout,101) 'IJJ(J,N)      POSITION OF IN-GROUP SCATTERING CROSS SECTION IN SCATTERING DATA FOR GROUP J, SCATTERING BLOCK N'
 	call write_inttable(ijj(i,:,:),ngroup,nscmax,iout)
+	
 	! PRINCIPAL CROSS SECTIONS   (5D RECORD)
 	write(iout,101) 'PRINCIPAL CROSS SECTIONS   (5D RECORD)'
 	write(iout,101) 'STRPL(J,L)    PL WEIGHTED TRANSPORT CROSS SECTION '
@@ -125,8 +130,10 @@ do i = 1,niso
 		write(iout,'(9(e12.6,x))') sngam(i,j), sfis(i,j), snutot(i,j), chiso(i,j), snalf(i,j), snp(i,j), sn2n(i,j), &
 		                           snd(i,j), snt(i,j)
 	enddo
+	
 	! ISOTOPE CHI DATA   (6D RECORD)
 	! not tested
+	
 	! SCATTERING SUB-BLOCK   (7D RECORD)
 	write(iout,101) 'SCATTERING SUB-BLOCK   (7D RECORD)'
 	do j = 1,nscmax
@@ -138,16 +145,21 @@ do i = 1,niso
 				write(iout,'(a,i3,a,i3,a,i3)') 'scattering into group ', k, ' from position ', scat_point + 1, ' through ', &
 				                                scat_point + jband(i,k,j)
 				call write_fivetable_real(scat(i,j,scat_point + 1:scat_point + jband(i,k,j),lord(i,j)),jband(i,k,j),iout)
-				scat_point = scat_point + jband(i,k,j)
+				jup = ijj(i,k,j) - 1
+				jdn = jband(i,k,j) - ijj(i,k,j)
+				do g = jband(i,k,j),1,-1
+					! scat_temp(from,to)
+					scat_temp(g,k) = scat(i,j,scat_point + 1,lord(i,j))
+					scat_point = scat_point + 1
+				enddo
 			enddo
-			! TO-DO: Add this to ASCII output once you figure out how it works.
-			! if (ngroup .le. 10) then
-				! write(iout,101) 'scattering from / to'
-				! write(iout,'(10i14)') (k,k=1,ngroup)
-				! do k = 1,ngroup
-					! write(iout,'(i3)') k
-				! enddo
-			! endif
+			if (ngroup .le. 10) then
+				write(iout,'(a)') 'scattering table    from/to'
+				do k = 1,ngroup
+					write(iout,'(10(es13.6,x))') scat_temp(k,:)
+				enddo
+				write(iout,*)
+			endif
 		endif
 	enddo
 enddo
