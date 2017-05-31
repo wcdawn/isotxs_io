@@ -69,12 +69,7 @@ enddo
 do g = 1,ngroup
 	write(10,'(a,i3)') 'group ', g
 	write(10,'(a,es12.6)') 'absorption cross section = ', signg(g) + sigalf(g) + sigp(g) + sigf(g)
-	scat_sum = 0.0d0
-	do gprime = 1,ngroup
-		scat_sum = scat_sum + scatter(g,gprime)
-	enddo
-	write(10,'(a,es12.6)') 'removal cross section    = ', signg(g) + sigalf(g) + sigp(g) + sigf(g) + scat_sum
-	write(10,'(a)') 'scattering table'
+	write(10,'(a)') 'scattering table    from/to'
 	do i = 1,ngroup
 		do j = 1,ngroup
 			write(10,'(es12.6,x)',advance = 'no') scatter(i,j)
@@ -83,7 +78,6 @@ do g = 1,ngroup
 	enddo
 	write(10,*)
 enddo
-
 
 
 ! iterate
@@ -101,7 +95,7 @@ k   = 1.0d0
 lambda = 1.0d0
 lambda_old = lambda
 iteration = 0
-tol = 1.0d-5
+tol = 1.0d-10
 converge = 1.0d0
 do while (converge .gt. tol)
 	phi_old = phi
@@ -156,7 +150,7 @@ do while (converge .gt. tol)
 	enddo
 	lambda = lambda_old * (numerator / denominator)
 	iteration = iteration + 1
-	write(*,*) iteration, lambda, chi_tilde_sum
+	write(*,'(i3,x,f12.10,x,f12.10)') iteration, lambda, chi_tilde_sum
 	converge = abs(lambda - lambda_old) / lambda
 	if (iteration .eq. 101) stop
 enddo

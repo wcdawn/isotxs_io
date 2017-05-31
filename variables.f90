@@ -96,13 +96,14 @@ allocate(chiiso(niso,ichist,ngroup))
 allocate(isopec(niso,ngroup))
 ! SCATTERING SUB-BLOCK   (7D RECORD)
 ! TO-DO : ADDRESS THE SIZE OF THIS (IN DIMENSION 4)
-allocate(scat(niso,nscmax,ngroup * ngroup,3))
+allocate(scat(niso,nscmax,ngroup * ngroup,nscmax))
 endsubroutine allocate_memory
 
 subroutine xs_structure
 IMPLICIT NONE
 integer :: i,j,k
 integer :: point, group_offset, group_start, group_end
+integer :: jup, jdn
 
 allocate(xs(niso))
 do i = 1,niso
@@ -149,34 +150,29 @@ do i = 1,niso
 	do j = 1,nscmax
 		point = 0
 		do k = 1,ngroup
-			group_offset = ijj(i,k,j) - 1
-			group_end    = k - group_offset
-			group_start  = group_end - jband(i,k,j) + 1
+			jup = ijj(i,k,j) - 1
+			jdn = jband(i,k,j) - ijj(i,k,j)
+			group_start = k - jdn
+			group_end   = k + jup
+			write(*,'(8a)') ' jup', ' jdn', ' str', ' end', ' ijj', ' jbd', ' pnt', ' ptj'
+			write(*,'(8i4)') jup, jdn, group_start, group_end, ijj(i,k,j), jband(i,k,j), point, point + jband(i,k,j)
 			if (idsct(i,j) .ge. 300) then
 				! n2n
-				if ((idsct(i,j) - 300 .ne. 0)) then
-					point = point + jband(i,k,j)
-					cycle
+				if ((idsct(i,j) - 300 .eq. 0)) then
+					xs(i)%n2n(group_start:group_end,k) = scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
 				endif
-				! write(*,*) group_start, group_end, (group_end - group_start)
-				! write(*,*) point + 1, point + jband(i,k,j), ((point + jband(i,k,j)) - (point + 1))
-				xs(i)%n2n(k,group_start:group_end) = scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
 			elseif (idsct(i,j) .ge. 200) then
 				! inelastic
-				if ((idsct(i,j) - 200 .ne. 0)) then
-					point = point + jband(i,k,j)
-					cycle
+				if ((idsct(i,j) - 200 .eq. 0)) then
+					xs(i)%scat(group_start:group_end,k) = xs(i)%scat(group_start:group_end,k) + &
+					scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
 				endif
-				xs(i)%scat(k,group_start:group_end) = xs(i)%scat(k,group_start:group_end) + &
-				scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
 			elseif (idsct(i,j) .ge. 100) then
 				! elastic
-				if ((idsct(i,j) - 100 .ne. 0)) then
-					point = point + jband(i,k,j)
-					cycle
+				if ((idsct(i,j) - 100 .eq. 0)) then
+					xs(i)%scat(group_start:group_end,k) = xs(i)%scat(group_start:group_end,k) + &
+					scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
 				endif
-				xs(i)%scat(k,group_start:group_end) = xs(i)%scat(k,group_start:group_end) + &
-				scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
 			else
 				! write(*,'(a)') 'FATAL -- unsupported idsct value'
 				! write(*,'(a,i3)') 'isotope', i

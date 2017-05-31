@@ -135,10 +135,19 @@ do i = 1,niso
 			call write_fivetable_real(scat(i,j,:,lord(i,j)),kmax,iout)
 			scat_point = 0
 			do k = 1,ngroup
-				write(iout,*) 'scattering into group ', k, ' from position ', scat_point + 1, ' through ', scat_point + jband(i,k,j)
+				write(iout,'(a,i3,a,i3,a,i3)') 'scattering into group ', k, ' from position ', scat_point + 1, ' through ', &
+				                                scat_point + jband(i,k,j)
 				call write_fivetable_real(scat(i,j,scat_point + 1:scat_point + jband(i,k,j),lord(i,j)),jband(i,k,j),iout)
 				scat_point = scat_point + jband(i,k,j)
 			enddo
+			! TO-DO: Add this to ASCII output once you figure out how it works.
+			! if (ngroup .le. 10) then
+				! write(iout,101) 'scattering from / to'
+				! write(iout,'(10i14)') (k,k=1,ngroup)
+				! do k = 1,ngroup
+					! write(iout,'(i3)') k
+				! enddo
+			! endif
 		endif
 	enddo
 enddo

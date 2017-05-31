@@ -71,6 +71,13 @@ if (ios .ne. 0) then
 	stop
 endif
 
+! TO-DO: If this is a problem, need to add ANOTHER loop to scattering block processing
+if (nsblok .ne. 1) then
+	write(*,101) 'FATAL -- nsblok must .eq. 1'
+	write(*,'(a,i3)') 'nsblok = ', nsblok
+	stop
+endif
+
 write(*,101) 'allocating memory'
 call allocate_memory(niso,ngroup,nscmax,ichist)
 

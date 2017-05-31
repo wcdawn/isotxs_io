@@ -87,31 +87,31 @@ SNGAM        SFIS         SNUTOT       CHISO        SNALF        SNP          SN
 SCATTERING SUB-BLOCK   (7D RECORD)
 block id 100 order   1
   1 0.543205E+01     2 0.122313E+02     3 0.128652E-02   
- scattering into group            1  from position            1  through            1
+scattering into group   1 from position   1 through   1
   1 0.543205E+01   
- scattering into group            2  from position            2  through            3
+scattering into group   2 from position   2 through   3
   1 0.122313E+02     2 0.128652E-02   
 block id 101 order   1
   1 0.257013E+01     2 0.673548E+01     3 -.150689E-08   
- scattering into group            1  from position            1  through            1
+scattering into group   1 from position   1 through   1
   1 0.257013E+01   
- scattering into group            2  from position            2  through            3
+scattering into group   2 from position   2 through   3
   1 0.673548E+01     2 -.150689E-08   
 block id 200 order   1
   1 0.157007E+01     2 0.000000E+00     3 0.509314E-06   
- scattering into group            1  from position            1  through            1
+scattering into group   1 from position   1 through   1
   1 0.157007E+01   
- scattering into group            2  from position            2  through            3
+scattering into group   2 from position   2 through   3
   1 0.000000E+00     2 0.509314E-06   
 block id 201 order   1
   1 0.679790E-01     2 0.000000E+00     3 0.000000E+00   
- scattering into group            1  from position            1  through            1
+scattering into group   1 from position   1 through   1
   1 0.679790E-01   
- scattering into group            2  from position            2  through            2
+scattering into group   2 from position   2 through   2
   1 0.000000E+00   
 block id 300 order   1
   1 0.602062E-02     2 0.000000E+00     3 0.484729E-08   
- scattering into group            1  from position            1  through            1
+scattering into group   1 from position   1 through   1
   1 0.602062E-02   
- scattering into group            2  from position            2  through            3
+scattering into group   2 from position   2 through   3
   1 0.000000E+00     2 0.484729E-08   
