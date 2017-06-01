@@ -32,8 +32,8 @@ real(4),dimension(:,:,:,:),allocatable :: scat
 ! xs_structure
 type xs_library
 	real(8) :: kappa
-	real(8),allocatable,dimension(:,:) :: sigtr, sigtot, scat, n2n
-	real(8),allocatable,dimension(:) :: p0trans, p0tot, p1tot, signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt, sigabs
+	real(8),allocatable,dimension(:,:) :: sigtr, sigtot, scat, n2n, mpact_scat
+	real(8),allocatable,dimension(:) :: p0trans, p0tot, p1tot, signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt, mpact_abs
 endtype
 type(xs_library),allocatable,dimension(:) :: xs
 
@@ -96,15 +96,15 @@ allocate(snt(niso,ngroup))
 allocate(chiiso(niso,ichist,ngroup))
 allocate(isopec(niso,ngroup))
 ! SCATTERING SUB-BLOCK   (7D RECORD)
-! TO-DO : ADDRESS THE SIZE OF THIS (IN DIMENSION 4)
 allocate(scat(niso,nscmax,ngroup * ngroup,nscmax))
 endsubroutine allocate_memory
 
 subroutine xs_structure
 IMPLICIT NONE
-integer :: i,j,k,g
+integer :: i, j, k, g, gprime
 integer :: point, group_offset, group_start, group_end
 integer :: jup, jdn
+real(8) :: out_scatter
 
 allocate(xs(niso))
 do i = 1,niso
@@ -120,9 +120,10 @@ do i = 1,niso
 	allocate(xs(i)%sign2n(ngroup))
 	allocate(xs(i)%sigd(ngroup))
 	allocate(xs(i)%sigt(ngroup))
-	allocate(xs(i)%sigabs(ngroup))
+	allocate(xs(i)%mpact_abs(ngroup))
 	allocate(xs(i)%scat(ngroup,ngroup))
 	allocate(xs(i)%n2n(ngroup,ngroup))
+	allocate(xs(i)%mpact_scat(ngroup,ngroup))
 enddo
 
 do i = 1,niso
@@ -147,8 +148,8 @@ do i = 1,niso
 	xs(i)%sign2n(:)    = sn2n(i,:)     * adens(i)
 	xs(i)%sigd(:)      = snd(i,:)      * adens(i)
 	xs(i)%sigt(:)      = snt(i,:)      * adens(i)
-	xs(i)%sigabs(:)    = xs(i)%signg(:) + xs(i)%sigalf(:) + xs(i)%sigp(:) + xs(i)%sigf(:) + xs(i)%sign2n(:) + xs(i)%sigd(:) + &
-	                     xs(i)%sigt(:)
+	xs(i)%mpact_abs(:)    = xs(i)%signg(:) + xs(i)%sigalf(:) + xs(i)%sigp(:) + xs(i)%sigf(:) + xs(i)%sigd(:) + &
+	                        xs(i)%sigt(:) - xs(i)%sign2n(:)
 	
 	xs(i)%scat(:,:) = 0.0d0
 	xs(i)%n2n(:,:)  = 0.0d0
@@ -194,7 +195,11 @@ do i = 1,niso
 				! stop
 			endif
 		enddo
-	enddo	
+	enddo
+	
+	xs(i)%mpact_scat(:,:) = 2 * xs(i)%n2n(:,:) + xs(i)%scat(:,:)
+	
+	
 enddo
 
 endsubroutine xs_structure

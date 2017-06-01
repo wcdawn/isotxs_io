@@ -35,7 +35,7 @@ do i = 1,niso
 
 	! abs1 nfs1 kfs1 chi1
 	do g = 1,ngroup
-		write(iout,'(4(e12.6,x))') xs(i)%sigabs(g), xs(i)%nuf(g) * xs(i)%sigf(g), xs(i)%kappa * xs(i)%sigf(g), xs(i)%chi(g)
+		write(iout,'(4(e12.6,x))') xs(i)%mpact_abs(g), xs(i)%nuf(g) * xs(i)%sigf(g), xs(i)%kappa * xs(i)%sigf(g), xs(i)%chi(g)
 	enddo
 	
 	! scat0_1->1 scat0_2->1 ... scat0_NG->1
@@ -48,7 +48,7 @@ do i = 1,niso
 	! scat1_1->NG scat1_2->NG ... scat1_NG->NG
 	do g = 1,ngroup
 		do j = 1,ngroup
-			write(iout,'(e12.6,x)', advance = 'no') xs(i)%scat(j,g)
+			write(iout,'(e12.6,x)', advance = 'no') xs(i)%mpact_scat(j,g)
 		enddo
 		write(iout,*)
 	enddo
