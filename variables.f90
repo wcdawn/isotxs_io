@@ -200,6 +200,8 @@ do i = 1,niso
 		enddo
 	enddo
 	
+	xs(i)%scat(:,:) = xs(i)%scat(:,:) * adens(i)
+	xs(i)%n2n(:,:) = xs(i)%n2n(:,:) * adens(i)
 	xs(i)%mpact_scat(:,:) = 2 * xs(i)%n2n(:,:) + xs(i)%scat(:,:)
 	
 enddo

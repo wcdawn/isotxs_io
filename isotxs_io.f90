@@ -254,6 +254,8 @@ if (lmpact) then
 	write(*,101) 'writing to MPACT user format'
 	mpact_fname = 'soft_fuel.xsl'
 	mpact_library_name = 'soft fuel MPACT test'
+	! mpact_fname = 'u235.xsl'
+	! mpact_library_name = 'u235 single isotope test'
 	mpact_iout = 22
 	call mpact_format(mpact_iout,mpact_fname,mpact_library_name)
 endif

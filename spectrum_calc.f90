@@ -8,13 +8,14 @@ IMPLICIT NONE
 integer :: i, j, g, gprime
 integer :: iteration
 ! real(8),allocatable,dimension(:,:) :: sigtr, sigtot
-real(8),allocatable,dimension(:)   :: signg, sigf, nusigf, sigalf, sigp, sign2n, sigd, sigt, mpact_absnusigf
+real(8),allocatable,dimension(:)   :: sigtot, signg, sigf, nusigf, sigalf, sigp, sign2n, sigd, sigt, mpact_absnusigf
 real(8),allocatable,dimension(:)   :: phi, phi_old, source, xs_total, chi_tilde
 real(8),allocatable,dimension(:,:) :: scatter, n2n
 real(8) :: tol, converge, scat_sum, fiss_sum, scat_source_sum, lambda, lambda_old, numerator, denominator
 real(8) :: chi_top, chi_bot
 real(8) :: chi_tilde_sum, iso_fiss_sum
 
+allocate(sigtot(ngroup))
 allocate(signg(ngroup))
 allocate(sigf(ngroup))
 allocate(nusigf(ngroup))
@@ -33,6 +34,7 @@ allocate(source(ngroup))
 
 ! homogenize
 ! sum of macro xs
+sigtot(:) = 0.0d0
 signg(:)  = 0.0d0
 sigf(:)   = 0.0d0
 nusigf(:) = 0.0d0
@@ -45,6 +47,7 @@ scatter(:,:) = 0.0d0
 n2n(:,:) = 0.0d0
 do g = 1,ngroup
 	do i = 1,niso
+		sigtot(g) = sigtot(g) + xs(i)%p0tot(g)
 		signg(g)  = signg(g)  + xs(i)%signg(g)
 		sigf(g)   = sigf(g)   + xs(i)%sigf(g)
 		nusigf(g) = nusigf(g) + (xs(i)%nuf(g) * xs(i)%sigf(g))
