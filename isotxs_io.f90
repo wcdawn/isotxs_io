@@ -18,10 +18,10 @@ logical :: lfixstr, lascii, lspectrum, lmpact
 ifl = 11
 ! fname = '16.4_Fuel.ISOTXS_complete'
 ! fname = 'ISOTXS.20'
-! fname = 'ISOTXS.soft_fuel'
-fname = 'ISOTXS.u235'
+fname = 'ISOTXS.soft_fuel'
+! fname = 'ISOTXS.u235'
 lfixstr   = .false.
-lascii    = .false.
+lascii    = .true.
 lspectrum = .true.
 lmpact    = .true.
 
@@ -252,8 +252,8 @@ endif
 
 if (lmpact) then
 	write(*,101) 'writing to MPACT user format'
-	mpact_fname = 'u235.xsl'
-	mpact_library_name = 'u235 test format output'
+	mpact_fname = 'soft_fuel.xsl'
+	mpact_library_name = 'soft fuel MPACT test'
 	mpact_iout = 22
 	call mpact_format(mpact_iout,mpact_fname,mpact_library_name)
 endif

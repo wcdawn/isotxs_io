@@ -8,7 +8,7 @@ IMPLICIT NONE
 integer :: i, j, g, gprime
 integer :: iteration
 ! real(8),allocatable,dimension(:,:) :: sigtr, sigtot
-real(8),allocatable,dimension(:)   :: signg, nusigf, sigf, chi, sigalf, sigp, sign2n, sigd, sigt
+real(8),allocatable,dimension(:)   :: signg, sigf, nusigf, sigalf, sigp, sign2n, sigd, sigt, mpact_absnusigf
 real(8),allocatable,dimension(:)   :: phi, phi_old, source, xs_total, chi_tilde
 real(8),allocatable,dimension(:,:) :: scatter, n2n
 real(8) :: tol, converge, scat_sum, fiss_sum, scat_source_sum, lambda, lambda_old, numerator, denominator
@@ -16,35 +16,38 @@ real(8) :: chi_top, chi_bot
 real(8) :: chi_tilde_sum, iso_fiss_sum
 
 allocate(signg(ngroup))
-allocate(nusigf(ngroup))
 allocate(sigf(ngroup))
+allocate(nusigf(ngroup))
 allocate(sigalf(ngroup))
 allocate(sigp(ngroup))
 allocate(sign2n(ngroup))
 allocate(sigd(ngroup))
 allocate(sigt(ngroup))
-allocate(phi(ngroup))
-allocate(source(ngroup))
-allocate(xs_total(ngroup))
 allocate(scatter(ngroup,ngroup))
 allocate(n2n(ngroup,ngroup))
+allocate(xs_total(ngroup))
+allocate(phi(ngroup))
+allocate(phi_old(ngroup))
 allocate(chi_tilde(ngroup))
+allocate(source(ngroup))
 
 ! homogenize
 ! sum of macro xs
-signg  = 0.0d0
-nusigf = 0.0d0
-sigf   = 0.0d0
-sigalf = 0.0d0
-sigp   = 0.0d0
-sign2n = 0.0d0
-sigd   = 0.0d0
-sigt   = 0.0d0
+signg(:)  = 0.0d0
+sigf(:)   = 0.0d0
+nusigf(:) = 0.0d0
+sigalf(:) = 0.0d0
+sigp(:)   = 0.0d0
+sign2n(:) = 0.0d0
+sigd(:)   = 0.0d0
+sigt(:)   = 0.0d0
+scatter(:,:) = 0.0d0
+n2n(:,:) = 0.0d0
 do g = 1,ngroup
 	do i = 1,niso
 		signg(g)  = signg(g)  + xs(i)%signg(g)
-		nusigf(g) = nusigf(g) + (xs(i)%sigf(g) * xs(i)%nuf(g))
 		sigf(g)   = sigf(g)   + xs(i)%sigf(g)
+		nusigf(g) = nusigf(g) + (xs(i)%nuf(g) * xs(i)%sigf(g))
 		sigalf(g) = sigalf(g) + xs(i)%sigalf(g)
 		sigp(g)   = sigp(g)   + xs(i)%sigp(g)
 		sign2n(g) = sign2n(g) + xs(i)%sign2n(g)
@@ -62,12 +65,12 @@ do g = 1,ngroup
 	do gprime = 1,ngroup
 		scat_sum = scat_sum + scatter(g,gprime)
 	enddo
-	xs_total(g) = signg(g) + sigalf(g) + sigp(g) + sigf(g) + scat_sum + sign2n(g) + sigd(g) + sigt(g)
+	xs_total(g) = signg(g) + sigalf(g) + sigp(g) + sigf(g) + sign2n(g) + sigd(g) + sigt(g) + scat_sum
 enddo
 phi = 1.0d0
 lambda = 1.0d0
 iteration = 0
-tol = 1.0d-10
+tol = 1.0d-7
 converge = 1.0d0
 do while (converge .gt. tol)
 	phi_old = phi

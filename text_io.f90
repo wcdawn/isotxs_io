@@ -5,7 +5,7 @@ contains
 subroutine ascii_out
 IMPLICIT NONE
 integer :: i, j, k, iout, ios = 0, g
-integer :: scat_point, jup, jdn
+integer :: scat_point, jup, jdn, group_start, group_end
 character(80) :: fname_out
 real(4),dimension(ngroup,ngroup) :: scat_temp
 
@@ -147,7 +147,9 @@ do i = 1,niso
 				call write_fivetable_real(scat(i,j,scat_point + 1:scat_point + jband(i,k,j),lord(i,j)),jband(i,k,j),iout)
 				jup = ijj(i,k,j) - 1
 				jdn = jband(i,k,j) - ijj(i,k,j)
-				do g = jband(i,k,j),1,-1
+				group_start = k + jup
+				group_end = k - jdn
+				do g = group_start,group_end,-1
 					! scat_temp(from,to)
 					scat_temp(g,k) = scat(i,j,scat_point + 1,lord(i,j))
 					scat_point = scat_point + 1

@@ -157,11 +157,14 @@ do i = 1,niso
 	do j = 1,nscmax
 		point = 0
 		do k = 1,ngroup
+			jup = ijj(i,k,j) - 1
+			jdn = jband(i,k,j) - ijj(i,k,j)
+			group_start = k + jup
+			group_end = k - jdn
 			if (idsct(i,j) .ge. 300) then
 				! n2n
 				if ((idsct(i,j) - 300 .eq. 0)) then
-					! xs(i)%n2n(group_start:group_end,k) = scat(i,j,point + 1:point + jband(i,k,j),lord(i,j))
-					do g = jband(i,k,j),1,-1
+					do g = group_start,group_end,-1
 						xs(i)%n2n(g,k) = scat(i,j,point + 1,lord(i,j))
 						point = point + 1
 					enddo
@@ -171,7 +174,7 @@ do i = 1,niso
 			elseif (idsct(i,j) .ge. 200) then
 				! inelastic
 				if ((idsct(i,j) - 200 .eq. 0)) then
-					do g = jband(i,k,j),1,-1
+					do g = group_start,group_end,-1
 						xs(i)%scat(g,k) = xs(i)%scat(g,k) + scat(i,j,point + 1,lord(i,j))
 						point = point + 1
 					enddo
@@ -181,7 +184,7 @@ do i = 1,niso
 			elseif (idsct(i,j) .ge. 100) then
 				! elastic
 				if ((idsct(i,j) - 100 .eq. 0)) then
-					do g = jband(i,k,j),1,-1
+					do g = group_start,group_end,-1
 						xs(i)%scat(g,k) = xs(i)%scat(g,k) + scat(i,j,point + 1,lord(i,j))
 						point = point + 1
 					enddo
@@ -198,7 +201,6 @@ do i = 1,niso
 	enddo
 	
 	xs(i)%mpact_scat(:,:) = 2 * xs(i)%n2n(:,:) + xs(i)%scat(:,:)
-	
 	
 enddo
 
