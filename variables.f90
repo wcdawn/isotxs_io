@@ -36,6 +36,11 @@ type xs_library
 	real(8),allocatable,dimension(:) :: p0trans, p0tot, p1tot, signg, sigf, nuf, chi, sigalf, sigp, sign2n, sigd, sigt, mpact_abs
 endtype
 type(xs_library),allocatable,dimension(:) :: xs
+! spectrum_calc
+real(8),allocatable,dimension(:) :: chi_tilde
+! mpact_homogenize
+real(8),allocatable,dimension(:) :: mpact_abs, mpact_nusigf, mpact_kappasigf
+real(8),allocatable,dimension(:,:) :: mpact_scat
 
 contains
 

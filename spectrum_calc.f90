@@ -9,7 +9,7 @@ integer :: i, j, g, gprime
 integer :: iteration
 ! real(8),allocatable,dimension(:,:) :: sigtr, sigtot
 real(8),allocatable,dimension(:)   :: sigtot, signg, sigf, nusigf, sigalf, sigp, sign2n, sigd, sigt, mpact_absnusigf
-real(8),allocatable,dimension(:)   :: phi, phi_old, source, xs_total, chi_tilde
+real(8),allocatable,dimension(:)   :: phi, phi_old, source, xs_total!, chi_tilde
 real(8),allocatable,dimension(:,:) :: scatter, n2n
 real(8) :: tol, converge, scat_sum, fiss_sum, scat_source_sum, lambda, lambda_old, numerator, denominator
 real(8) :: chi_top, chi_bot
@@ -75,6 +75,10 @@ lambda = 1.0d0
 iteration = 0
 tol = 1.0d-7
 converge = 1.0d0
+if (vector_sum(nusigf,ngroup) .le. 1.0d-5) then
+	write(*,'(a)') 'this is non-fissile material'
+	return
+endif
 do while (converge .gt. tol)
 	phi_old = phi
 	lambda_old = lambda

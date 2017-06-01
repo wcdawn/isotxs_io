@@ -10,7 +10,7 @@ integer :: i, j, k, r, c
 integer :: ifl, ios = 0, mpact_iout
 integer :: ichiread, ifisread, ialfread, inpread, in2nread, indread, intread ! reading checks
 character(80) :: fname, mpact_fname, mpact_library_name
-logical :: lfixstr, lascii, lspectrum, lmpact
+logical :: lfixstr, lascii, lspectrum, lmpact, lmpact_homog
 
 ! Formats
 ! CHARACTER
@@ -18,12 +18,13 @@ logical :: lfixstr, lascii, lspectrum, lmpact
 ifl = 11
 ! fname = '16.4_Fuel.ISOTXS_complete'
 ! fname = 'ISOTXS.20'
-fname = 'ISOTXS.soft_fuel'
+fname = 'ISOTXS.soft_reflector'
 ! fname = 'ISOTXS.u235'
 lfixstr   = .false.
 lascii    = .true.
-lspectrum = .true.
+lspectrum = .false.
 lmpact    = .true.
+lmpact_homog = .true.
 
 !------------------------------------------------------------------------------!
 ! OPEN FILES
@@ -252,12 +253,20 @@ endif
 
 if (lmpact) then
 	write(*,101) 'writing to MPACT user format'
-	mpact_fname = 'soft_fuel.xsl'
-	mpact_library_name = 'soft fuel MPACT test'
+	mpact_fname = 'soft_reflector.xsl'
+	mpact_library_name = 'soft reflector MPACT'
 	! mpact_fname = 'u235.xsl'
 	! mpact_library_name = 'u235 single isotope test'
 	mpact_iout = 22
 	call mpact_format(mpact_iout,mpact_fname,mpact_library_name)
+endif
+
+if (lmpact_homog) then
+	write(*,101) 'homogenizing and writing to MPACT user format'
+	mpact_fname = 'soft_reflector_homog.xsl'
+	mpact_library_name = 'soft reflector MPACT homog'
+	mpact_iout = 23
+	call mpact_homogenize(mpact_iout,mpact_fname,mpact_library_name)
 endif
 
 close(ifl)
