@@ -196,18 +196,13 @@ do i = 1,niso
 				else
 					point = point + jband(i,k,j)
 				endif
-			else
-				! write(*,'(a)') 'FATAL -- unsupported idsct value'
-				! write(*,'(a,i3)') 'isotope', i
-				! write(*,'(a,i3)') 'idsct', idsct(i,j)
-				! stop
 			endif
 		enddo
 	enddo
 	
 	xs(i)%scat(:,:) = xs(i)%scat(:,:) * adens(i)
 	xs(i)%n2n(:,:) = xs(i)%n2n(:,:) * adens(i)
-	xs(i)%mpact_scat(:,:) = 2 * xs(i)%n2n(:,:) + xs(i)%scat(:,:)
+	xs(i)%mpact_scat(:,:) = 2.0d0 * xs(i)%n2n(:,:) + xs(i)%scat(:,:)
 	
 enddo
 

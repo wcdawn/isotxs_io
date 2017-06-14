@@ -18,11 +18,11 @@ logical :: lfixstr, lascii, lspectrum, lmpact, lmpact_homog
 ifl = 11
 ! fname = '16.4_Fuel.ISOTXS_complete'
 ! fname = 'ISOTXS.20'
-fname = 'ISOTXS.soft_reflector'
+fname = 'ISOTXS_soft_fuel.300'
 ! fname = 'ISOTXS.u235'
 lfixstr   = .false.
 lascii    = .true.
-lspectrum = .false.
+lspectrum = .true.
 lmpact    = .true.
 lmpact_homog = .true.
 
@@ -31,7 +31,7 @@ lmpact_homog = .true.
 !------------------------------------------------------------------------------!
 ! ISOTXS in
 ! default open with little_endian. May be closed and reopened later
-open(ifl, file = fname, status = 'old', form = 'unformatted', action = 'read', convert = 'LITTLE_ENDIAN', iostat = ios)
+open(unit = ifl, file = fname, status = 'old', form = 'unformatted', action = 'read', convert = 'LITTLE_ENDIAN', iostat = ios)
 call checkopen(ifl,fname,ios)
 
 !------------------------------------------------------------------------------!
@@ -76,7 +76,7 @@ if (ios .ne. 0) then
 	stop
 endif
 
-! TO-DO: If this is a problem, need to add ANOTHER loop to scattering block processing
+! if this is a problem, need to add ANOTHER loop to scattering block processing
 if (nsblok .ne. 1) then
 	write(*,101) 'FATAL -- nsblok must .eq. 1'
 	write(*,'(a,i3)') 'nsblok = ', nsblok
@@ -85,17 +85,6 @@ endif
 
 write(*,101) 'allocating memory'
 call allocate_memory(niso,ngroup,nscmax,ichist)
-
-! READ PRINCIPAL CROSS SECTIONS   (5D RECORD)
-! TO-DO: Is this ever going to be important?
-! CD    ISTRPD        NUMBER OF COORDINATE DIRECTIONS FOR WHICH          -
-! CD                     COORDINATE DEPENDENT TRANSPORT CROSS SECTIONS   -
-! CD                     ARE GIVEN. IF ISTRPD=0, NO COORDINATE DEPENDENT -
-! CD                     TRANSPORT CROSS SECTIONS ARE GIVEN.             -
-! CD    STRPD(J,I)    COORDINATE DIRECTION I TRANSPORT CROSS SECTION     -
-! CD                               (PRESENT IF ISTRPD.GT.0)              -
-! allocate(strpd(niso,ngroup,maxval(istrpd)))
-
 
 !------------------------------------------------------------------------------!
 ! READ FILE DATA   (2D RECORD)
@@ -135,16 +124,6 @@ if (ichist .gt. 1) then
 	endif
 endif
 
-! *************(REPEAT FOR ALL ISOTOPES)                   
-! *         ISOTOPE CONTROL AND GROUP                      
-! *                        INDEPENDENT DATA    ALWAYS      
-! *         PRINCIPAL CROSS SECTIONS           ALWAYS      
-! *         ISOTOPE CHI DATA                   ICHI.GT.1   
-! *                                                        
-! *  **********(REPEAT TO NSCMAX SCATTERING BLOCKS)        
-! *  *  *******(REPEAT FROM 1 TO NSBLOK)                   
-! *  *  *   SCATTERING SUB-BLOCK               LORD(N).GT.0
-! *************                                            
 do i = 1,niso
 	!------------------------------------------------------------------------------!
 	! READ ISOTOPE CONTROL AND GROUP INDEPENDENT DATA   (4D RECORD)
@@ -204,7 +183,7 @@ do i = 1,niso
 	
 	!------------------------------------------------------------------------------!
 	! READ ISOTOPE CHI DATA   (6D RECORD)
-	! TO-DO: This is untested. No file from the test suite has this.
+	! This is untested. No file from the test suite has this.
 	!------------------------------------------------------------------------------!
 	if (ichi(i) .gt. 1) then
 		write(*,101) 'WARNING -- This is untested. No file from the test suite has this.'
@@ -253,8 +232,8 @@ endif
 
 if (lmpact) then
 	write(*,101) 'writing to MPACT user format'
-	mpact_fname = 'soft_reflector.xsl'
-	mpact_library_name = 'soft reflector MPACT'
+	mpact_fname = 'soft_fuel_300.xsl'
+	mpact_library_name = 'soft fuel 300 K MPACT'
 	! mpact_fname = 'u235.xsl'
 	! mpact_library_name = 'u235 single isotope test'
 	mpact_iout = 22
@@ -263,8 +242,8 @@ endif
 
 if (lmpact_homog) then
 	write(*,101) 'homogenizing and writing to MPACT user format'
-	mpact_fname = 'soft_reflector_homog.xsl'
-	mpact_library_name = 'soft reflector MPACT homog'
+	mpact_fname = 'soft_fuel_300_homog.xsl'
+	mpact_library_name = 'soft fuel 300 K MPACT homog'
 	mpact_iout = 23
 	call mpact_homogenize(mpact_iout,mpact_fname,mpact_library_name)
 endif
