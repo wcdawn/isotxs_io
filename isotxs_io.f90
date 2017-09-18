@@ -18,8 +18,8 @@ logical :: lfixstr, lascii, lspectrum, lmpact, lmpact_homog
 ifl = 11
 ! fname = '16.4_Fuel.ISOTXS_complete'
 ! fname = 'ISOTXS.20'
-fname = 'ISOTXS_soft_fuel.300'
-! fname = 'ISOTXS.u235'
+! fname = 'ISOTXS_soft_fuel.300'
+fname = 'ISOTXS.u235'
 lfixstr   = .false.
 lascii    = .true.
 lspectrum = .true.
