@@ -10,17 +10,16 @@ integer :: i, j, k, r, c
 integer :: ifl, ios = 0, mpact_iout
 integer :: ichiread, ifisread, ialfread, inpread, in2nread, indread, intread ! reading checks
 character(80) :: fname, mpact_fname, mpact_library_name
-logical :: lfixstr, lascii, lspectrum, lmpact, lmpact_homog
+character(80) :: shift_fname, shift_library_name
+integer :: shift_iout
+logical :: lfixstr, lascii, lspectrum, lmpact, lmpact_homog, lshift
 
 ! Formats
 ! CHARACTER
 101 format(a)  ! plain-text descriptor
 ifl = 11
-! fname = '16.4_Fuel.ISOTXS_complete'
-! fname = 'ISOTXS.20'
-! fname = 'ISOTXS_soft_fuel.300'
 fname = 'ISOTXS.u235'
-lfixstr   = .false.
+lfixstr   = .false. ! don't touch this one
 lascii    = .true.
 lspectrum = .true.
 lmpact    = .true.
@@ -234,8 +233,6 @@ if (lmpact) then
   write(*,101) 'writing to MPACT user format'
   mpact_fname = 'soft_fuel_300.xsl'
   mpact_library_name = 'soft fuel 300 K MPACT'
-  ! mpact_fname = 'u235.xsl'
-  ! mpact_library_name = 'u235 single isotope test'
   mpact_iout = 22
   call mpact_format(mpact_iout,mpact_fname,mpact_library_name)
 endif
@@ -247,6 +244,15 @@ if (lmpact_homog) then
   mpact_iout = 23
   call mpact_homogenize(mpact_iout,mpact_fname,mpact_library_name)
 endif
+
+if (lshift) then
+  write(*,101) 'writing to SHIFT/DENOVO user format'
+  shift_fname = 'mat.xs.xml'
+  shift_library_name = 'myMat'
+  shift_iout = 24
+  call shift_format(shift_iout,shift_fname,shift_library_name)
+endif
+
 
 close(ifl)
 endprogram isotxsio
