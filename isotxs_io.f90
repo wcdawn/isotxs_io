@@ -3,6 +3,7 @@ use text_io
 use variables
 use spectrum_calc
 use mpact_interface
+use shift
 IMPLICIT NONE
 
 ! General control variables
@@ -21,9 +22,10 @@ ifl = 11
 fname = 'ISOTXS.u235'
 lfixstr   = .false. ! don't touch this one
 lascii    = .true.
-lspectrum = .true.
-lmpact    = .true.
-lmpact_homog = .true.
+lspectrum = .false.
+lmpact    = .false.
+lmpact_homog = .false.
+lshift = .true.
 
 !------------------------------------------------------------------------------!
 ! OPEN FILES
