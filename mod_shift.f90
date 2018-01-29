@@ -130,11 +130,14 @@ contains
       tmpChar = trim(adjustl(tmpChar))
       write(iout,'(5a)',advance='no') 'value="', trim(tmpChar), 'x', trim(tmpChar), ':{'
       do g = 1,ngroup
-        do gprime = 1,ngroup-1
-          write(iout,'(e12.6,a)',advance='no') 1.0d0, ','
+        do gprime = 1,ngroup
+          if ((g == ngroup) .and. (gprime == ngroup)) then
+            exit
+          endif
+          write(iout,'(e12.6,a)',advance='no') xs(i)%scat(gprime,g), ','
         enddo
       enddo
-      write(iout,'(e12.6,a)') 1.0d0, '}"/>'
+      write(iout,'(e12.6,a)') xs(i)%scat(ngroup,ngroup), '}"/>'
 
       write(iout,101) '</ParameterList>'
     enddo ! niso
