@@ -132,7 +132,7 @@ do while (converge .gt. tol)
   lambda = lambda_old * (numerator / denominator)
   iteration = iteration + 1
   write(*,'(i3,x,f12.10,x,f12.10)') iteration, lambda, chi_tilde_sum
-  converge = abs(lambda - lambda_old) / lambda
+  converge = dabs(lambda - lambda_old) / lambda
   if (iteration .eq. 1001) stop 'MAX ITERATION'
 enddo
 write(*,'(a,i3)') 'iteration ', iteration
