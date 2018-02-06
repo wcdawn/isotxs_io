@@ -11,9 +11,9 @@ contains
     integer :: ios
     integer :: counter ! idk what this is but it seems to increment on each line
     character(10) :: tmpChar
-    integer :: i,g,gprime
+    integer :: i,g,gprime,j
 
-    real(8),dimension(:),allocatable :: shift_total, shift_scattering, &
+    real(8),dimension(:),allocatable :: shift_total, shift_abs, shift_scattering, &
       shift_fission, shift_nu_fission, shift_chi
     real(8),dimension(:,:),allocatable :: shift_sigma_s0
 
@@ -35,22 +35,40 @@ contains
       call spectrum_solve()
     endif
     allocate(shift_total(ngroup))
+    allocate(shift_abs(ngroup))
     allocate(shift_scattering(ngroup))
     allocate(shift_fission(ngroup))
     allocate(shift_nu_fission(ngroup))
     allocate(shift_chi(ngroup))
     allocate(shift_sigma_s0(ngroup,ngroup))
+    shift_total = 0.0d0
+    shift_abs = 0.0d0
+    shift_scattering = 0.0d0
+    shift_fission = 0.0d0
+    shift_nu_fission = 0.0d0
+    shift_chi = 0.0d0
+    shift_sigma_s0 = 0.0d0
     shift_chi = chi_tilde
     do i = 1,niso
-      shift_total(:) = shift_total(:) + xs(i)%p0trans(:)
       do g = 1,ngroup
-        shift_scattering(g) = shift_scattering(g) + sum(xs(i)%mpact_scat(g,:))
-      enddo
-      shift_fission(:) = shift_fission(:) + xs(i)%sigf(:)
-      shift_nu_fission(:) = shift_nu_fission(:) + xs(i)%nuf(:) * xs(i)%sigf(:)
-      shift_sigma_s0(:,:) = shift_sigma_s0(:,:) + xs(i)%mpact_scat(:,:)
+        shift_total(g) = shift_total(g) + xs(i)%p0trans(g)
+        shift_abs(g) = shift_abs(g) + xs(i)%mpact_abs(g)
+        shift_fission(g) = shift_fission(g) + xs(i)%sigf(g)
+        shift_nu_fission(g) = shift_nu_fission(g) + (xs(i)%nuf(g) * xs(i)%sigf(g))
+        do j = 1,ngroup
+          shift_sigma_s0(g,j) = shift_sigma_s0(g,j) + xs(i)%mpact_scat(g,j)
+        enddo ! j,ngroup
+      enddo ! g,ngroup
     enddo
-
+    ! scattering is total less absorption
+    do g = 1,ngroup
+      shift_scattering(g) = shift_total(g) - shift_abs(g)
+    enddo ! g,ngroup
+    if (any(shift_scattering(:) < 0.0d0)) then
+      write(*,*) 'shift_scattering < 0.0d0'
+      stop
+    endif
+    
     counter = 0
     write(tmpChar,201) counter
     tmpChar = trim(adjustl(tmpChar))

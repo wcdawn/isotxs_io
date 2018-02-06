@@ -19,7 +19,7 @@ logical :: lfixstr, lascii, lspectrum, lmpact, lmpact_homog, lshift_homog
 ! CHARACTER
 101 format(a)  ! plain-text descriptor
 ifl = 11
-fname = 'ISOTXS.soft_fuel'
+fname = 'ISOTXS.27'
 lfixstr   = .false. ! don't touch this one
 lascii    = .true.
 lspectrum = .false.
