@@ -13,19 +13,19 @@ integer :: ichiread, ifisread, ialfread, inpread, in2nread, indread, intread ! r
 character(80) :: fname, mpact_fname, mpact_library_name
 character(80) :: shift_fname, shift_library_name
 integer :: shift_iout
-logical :: lfixstr, lascii, lspectrum, lmpact, lmpact_homog, lshift
+logical :: lfixstr, lascii, lspectrum, lmpact, lmpact_homog, lshift_homog
 
 ! Formats
 ! CHARACTER
 101 format(a)  ! plain-text descriptor
 ifl = 11
-fname = 'ISOTXS.u235'
+fname = 'ISOTXS.soft_fuel'
 lfixstr   = .false. ! don't touch this one
 lascii    = .true.
 lspectrum = .false.
 lmpact    = .false.
 lmpact_homog = .false.
-lshift = .true.
+lshift_homog = .true.
 
 !------------------------------------------------------------------------------!
 ! OPEN FILES
@@ -247,7 +247,7 @@ if (lmpact_homog) then
   call mpact_homogenize(mpact_iout,mpact_fname,mpact_library_name)
 endif
 
-if (lshift) then
+if (lshift_homog) then
   write(*,101) 'writing to SHIFT/DENOVO user format'
   shift_fname = 'mat.xs.xml'
   shift_library_name = 'myMat'
