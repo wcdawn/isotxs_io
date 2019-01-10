@@ -1,7 +1,7 @@
 # Makefile
 
 FC = gfortran
-FFLAGS = -O2 -fbacktrace -fbounds-check
+FFLAGS = -O3 -fbounds-check
 
 .SUFFIXES :
 .SUFFIXES : .f90 .o

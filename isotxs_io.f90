@@ -10,22 +10,30 @@ IMPLICIT NONE
 integer :: i, j, k, r, c
 integer :: ifl, ios = 0, mpact_iout
 integer :: ichiread, ifisread, ialfread, inpread, in2nread, indread, intread ! reading checks
-character(80) :: fname, mpact_fname, mpact_library_name
-character(80) :: shift_fname, shift_library_name
+integer, parameter :: char_length = 1000
+character(char_length) :: dumbinp
+character(char_length) :: fname, mpact_fname, mpact_library_name
+character(char_length) :: shift_fname, shift_library_name
 integer :: shift_iout
 logical :: lfixstr, lascii, lspectrum, lmpact, lmpact_homog, lshift_homog
+
+
 
 ! Formats
 ! CHARACTER
 101 format(a)  ! plain-text descriptor
+
 ifl = 11
-fname = 'ISOTXS.27'
 lfixstr   = .false. ! don't touch this one
+call getarg(1,dumbinp)
+if (dumbinp == '') stop 'EXPECTED FNAME ON COMMAND LINE INPUT'
+fname = trim(adjustl(dumbinp))
+
 lascii    = .true.
-lspectrum = .false.
+lspectrum = .true.
 lmpact    = .false.
 lmpact_homog = .false.
-lshift_homog = .true.
+lshift_homog = .false.
 
 !------------------------------------------------------------------------------!
 ! OPEN FILES

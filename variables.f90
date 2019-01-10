@@ -143,7 +143,9 @@ do i = 1,niso
   
   xs(i)%p0trans(:)   = strpl(i,:,1)  * adens(i)
   xs(i)%p0tot(:)     = stotpl(i,:,1) * adens(i)
-  xs(i)%p1tot(:)     = stotpl(i,:,2) * adens(i)
+  if (size(stotpl,3) > 1) then
+    xs(i)%p1tot(:)     = stotpl(i,:,2) * adens(i)
+  endif
   xs(i)%signg(:)     = sngam(i,:)    * adens(i)
   xs(i)%sigf(:)      = sfis(i,:)     * adens(i)
   xs(i)%nuf(:)       = snutot(i,:)             
